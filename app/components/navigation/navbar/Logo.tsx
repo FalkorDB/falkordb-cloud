@@ -35,7 +35,7 @@ const Logo = () => {
 
   return (
     <>
-      <Link href="/" style={{ display: showButton ? "none" : "block" }}>
+      <Link href="https://www.falkordb.com" style={{ display: showButton ? "none" : "block" }}>
         <Image
           src="/images/logo.png"
           alt="Logo"
