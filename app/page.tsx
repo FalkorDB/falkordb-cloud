@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import SignInButtons from "@/app/components/SignInButtons"
 
 
-export default async function Page(req: NextRequest): Promise<any> {
+export default function Page() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
