@@ -11,6 +11,6 @@ export default function Button() {
       <button onClick={() => signIn(undefined, { callbackUrl: '/dashboard' })} className="h-12 rounded-lg font-bold px-5">Sign in</button>
     );
   }
-  return <button onClick={() => signOut()} className="h-12 rounded-lg font-bold px-5">Log Out</button>
+  return <button onClick={() => signOut({ callbackUrl: '/' })} className="h-12 rounded-lg font-bold px-5">Log Out</button>
 }
 

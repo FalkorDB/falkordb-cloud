@@ -1,7 +1,6 @@
 'use client';
 
-import { useSession, getSession } from "next-auth/react"
-import { redirect } from 'next/navigation'
+import { useSession, getSession, signIn } from "next-auth/react"
 
 export default function Page() {
   const { data: session, status } = useSession()
@@ -11,7 +10,7 @@ export default function Page() {
   }
 
   if (status === "unauthenticated") {
-    redirect('/')
+    signIn(undefined, { callbackUrl: '/dashboard' })
   }
 
   return (
