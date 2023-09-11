@@ -1,7 +1,6 @@
 'use client';
 
-import { useSession } from "next-auth/react"
-import { signOut } from "next-auth/react"
+import { useSession, signIn, signOut } from "next-auth/react"
 import Link from "next/link";
 
 export default function Button() {
@@ -9,7 +8,7 @@ export default function Button() {
 
   if (status === "unauthenticated") {
     return (
-      <Link href="/api/auth/signin" className="h-12 rounded-lg font-bold px-5">Sign In</Link>
+      <button onClick={() => signIn()} className="h-12 rounded-lg font-bold px-5">Sign in</button>
     );
   }
   return <button onClick={() => signOut()} className="h-12 rounded-lg font-bold px-5">Log Out</button>
