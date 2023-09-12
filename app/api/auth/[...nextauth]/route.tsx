@@ -7,6 +7,7 @@ import { TypeORMAdapter } from "@auth/typeorm-adapter"
 import { DataSourceOptions } from "typeorm"
 import { Adapter } from "next-auth/adapters";
 
+const env = process.env.NODE_ENV;
 const connection: DataSourceOptions = {
   type: "postgres",
   host: (process.env.POSTGRES_HOST || "localhost") as string,
@@ -14,11 +15,11 @@ const connection: DataSourceOptions = {
   username: process.env.POSTGRES_USER as string,
   password: process.env.POSTGRES_PASSWORD as string,
   database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
-  synchronize: true,
-  ssl: {
+  synchronize: (env == "development" ? true : false),
+  ssl: (env == "development" ? undefined : {
     rejectUnauthorized: false,
     requestCert: true,
-  },
+  }),
 }
 
 const authOptions: AuthOptions = {
