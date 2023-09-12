@@ -5,7 +5,7 @@ export default function Page() {
       <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
         <h1 className="text-6xl font-bold">
           Welcome to{' '}
-          <a className="text-blue-600" href="/dashboard">
+          <a className="text-blue-600" href="/sandbox">
             FalkorDB Cloud
           </a>
         </h1>
