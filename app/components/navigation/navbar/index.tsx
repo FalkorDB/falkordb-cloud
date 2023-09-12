@@ -38,6 +38,11 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
                   <p>Contacts</p>
                 </Link>
               </li>
+              <li>
+                <Link href="https://docs.falkordb.com/">
+                  <p>Documentation</p>
+                </Link>
+              </li>
             </ul>
             <div className="hidden md:block">
               <Button />
