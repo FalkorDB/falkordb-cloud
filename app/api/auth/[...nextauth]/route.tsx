@@ -17,7 +17,7 @@ const connection: DataSourceOptions = {
 }
 
 const authOptions: AuthOptions = {
-  adapter: TypeORMAdapter(connection) as Adapter,
+  // adapter: TypeORMAdapter(connection) as Adapter,
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
