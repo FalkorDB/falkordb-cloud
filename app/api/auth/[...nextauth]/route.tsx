@@ -14,6 +14,10 @@ const connection: DataSourceOptions = {
   username: process.env.POSTGRES_USER as string,
   password: process.env.POSTGRES_PASSWORD as string,
   database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
+  ssl: {
+    rejectUnauthorized: false,
+    requestCert: true,
+  },
 }
 
 const authOptions: AuthOptions = {
