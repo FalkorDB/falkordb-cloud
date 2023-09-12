@@ -9,15 +9,15 @@ import { Adapter } from "next-auth/adapters";
 
 const connection: DataSourceOptions = {
   type: "postgres",
-  host: (process.env.DB_HOST || "localhost") as string,
-  port: Number(process.env.DB_PORT || 5432),
-  username: process.env.DB_USERNAME as string,
-  password: process.env.DB_PASSWORD as string,
-  database: (process.env.DB_NAME || "falkordb") as string,
+  host: (process.env.POSTGRES_HOST || "localhost") as string,
+  port: Number(process.env.POSTGRES_PORT || 5432),
+  username: process.env.POSTGRES_USER as string,
+  password: process.env.POSTGRES_PASSWORD as string,
+  database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
 }
 
 const authOptions: AuthOptions = {
-  // adapter: TypeORMAdapter(connection) as Adapter,
+  adapter: TypeORMAdapter(connection) as Adapter,
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
