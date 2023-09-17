@@ -7,9 +7,9 @@ export default function Button() {
 
   if (status === "unauthenticated") {
     return (
-      <button onClick={() => signIn(undefined, { callbackUrl: '/sandbox' })} className="h-12 rounded-lg font-bold px-5">Sign in</button>
+      <button onClick={() => signIn(undefined, { callbackUrl: '/sandbox' })} className="h-12 rounded-lg font-bold px-5 text-white">Sign in</button>
     );
   }
-  return <button onClick={() => signOut({ callbackUrl: '/' })} className="h-12 rounded-lg font-bold px-5">Log Out</button>
+  return <button onClick={() => signOut({ callbackUrl: '/' })} className="h-12 rounded-lg font-bold px-5 text-white">Log Out</button>
 }
 

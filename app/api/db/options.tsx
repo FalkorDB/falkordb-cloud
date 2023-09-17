@@ -1,3 +1,4 @@
+import { entities } from "@auth/typeorm-adapter";
 import { DataSourceOptions } from "typeorm"
 
 const env = process.env.NODE_ENV;
