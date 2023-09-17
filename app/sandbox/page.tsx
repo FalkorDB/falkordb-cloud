@@ -1,8 +1,9 @@
 'use client';
 
-import { useSession, getSession, signIn } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 
 export default function Page() {
   
@@ -42,7 +43,7 @@ export default function Page() {
   }
 
   async function createSandbox() {
-    let response = await fetch('/api/db', {
+    fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -51,8 +52,8 @@ export default function Page() {
     setLoading(true)
   }
 
-  async function deleteSandbox() {
-    let response = await fetch('/api/db', {
+  function deleteSandbox() {
+    fetch('/api/db', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -69,9 +70,10 @@ export default function Page() {
             <div>Host: <span className="text-blue-600">{sandbox.host}</span></div>
             <div>Port: <span className="text-blue-600">{sandbox.port}</span></div>
             <div>Password: <span className="text-blue-600">{sandbox.password}</span></div>
+            <div>Created: <span className="text-blue-600">{sandbox.create_time}</span></div>
             <div>Redis URL: <span className="text-blue-600">redis://{sandbox.password}@{sandbox.host}:{sandbox.port}</span></div>
           </div>
-          <button className="rounded-full bg-blue-600 text-2xl p-3" onClick={deleteSandbox}>Delete Sandbox</button>
+          <Button className="rounded-full bg-blue-600 text-2xl p-3 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
         </main>
       </div>
     )
@@ -79,7 +81,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <button className="rounded-full bg-blue-600 text-6xl font-bold p-5" onClick={createSandbox}>Create Sandbox</button>
+          <Button className="rounded-full bg-blue-600 text-6xl font-bold p-20 text-black" onClick={createSandbox}>Create Sandbox</Button>
         </main>
       </div>
     )

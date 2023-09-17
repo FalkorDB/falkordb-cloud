@@ -53,7 +53,7 @@ export class UserEntity {
   @Column({ type: "varchar", nullable: true })
   db_password!: string | null
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: "varchar", nullable: true, transformer: transformer.date })
   db_create_time!: string
 
   @Column({ type: "varchar", nullable: true, transformer: transformer.date })

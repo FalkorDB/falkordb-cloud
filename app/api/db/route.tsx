@@ -1,4 +1,4 @@
-import { ECSClient, RunTaskCommand, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
 import authOptions from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
@@ -12,7 +12,7 @@ const ecsClient = new ECSClient({ region: process.env.REGION });
 
 export async function POST() {
 
-    const session =  await getServerSession(authOptions)
+    const session = await getServerSession(authOptions)
 
     if (!session) {
         return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
@@ -75,6 +75,7 @@ export async function POST() {
     user.db_host = "localhost";
     user.db_port = 6379;
     user.db_password = "password";
+    user.db_create_time = new Date().toISOString();
 
     await repo.save(user)
 
@@ -111,10 +112,10 @@ export async function DELETE() {
     })
 
     // Stop an ECS service using a predefined task in an existing cluster.
-    if (!user){
+    if (!user) {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    } 
-    
+    }
+
     if (!user.task_arn) {
         return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
     }
@@ -125,7 +126,17 @@ export async function DELETE() {
         reason: "User requested shutdown",
     };
 
-    const data = await ecsClient.send(new StopTaskCommand(params));
+    try {
+        const data = await ecsClient.send(new StopTaskCommand(params));
+    } catch (err) {
+        // If the task is already stopped, the StopTask action returns an error.
+        if (err instanceof InvalidParameterException) {
+            user.task_arn = null;
+            await repo.save(user)
+        }
+        console.log(err);
+        return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
+    }
     user.task_arn = null;
     await repo.save(user)
 
@@ -151,10 +162,10 @@ export async function GET() {
     })
 
     // Stop an ECS service using a predefined task in an existing cluster.
-    if (!user){
+    if (!user) {
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    } 
-    if(!user.task_arn) {
+    }
+    if (!user.task_arn) {
         return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
     }
 
