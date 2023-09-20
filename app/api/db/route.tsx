@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
+import { DescribeTasksCommand, ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
 import authOptions from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
@@ -88,7 +88,7 @@ export async function POST() {
     }
 
     user.task_arn = taskArn;
-    user.db_host = "localhost";
+    user.db_host = "";
     user.db_port = 6379;
     user.db_password = password;
     user.db_create_time = new Date();
@@ -98,8 +98,24 @@ export async function POST() {
         { "client": ecsClient, "maxWaitTime": 6000, "maxDelay": 1, "minDelay": 1 },
         { "cluster": "falkordb", "tasks": [taskArn] }
     )
+
+
+
     // note: there are multiple waitECSTask states, check the documentation for more about that
     if (waitECSTask.state == 'SUCCESS') {
+
+        // // Define the parameters for the describeTasks method
+        // let describeTasksParams = {
+        //     cluster: 'falkordb', // The name or ARN of the cluster that hosts the task
+        //     tasks: [taskArn] // The list of task IDs or ARNs to describe
+        // };
+
+        // // Create an instance of the DescribeTasksCommand class
+        // var command = new DescribeTasksCommand(describeTasksParams);
+        // let data = await ecsClient.send(command)
+        // console.log(JSON.stringify(data))
+
+
         return NextResponse.json({ message: "Task Started" }, { status: 201 })
     } else {
         return NextResponse.json({ message: "Task run failed" }, { status: 500 })
@@ -183,8 +199,6 @@ export async function GET() {
     if (!user.task_arn) {
         return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
     }
-
-console.log("WWWWWWWWWWWWWWWWWWWWWW    "  + JSON.stringify(user))
 
     return NextResponse.json({
         host: user.db_host,
