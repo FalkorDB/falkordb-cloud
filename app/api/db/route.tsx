@@ -5,6 +5,7 @@ import { UserEntity } from "../models/entities";
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { AppDataSource } from "./appDataSource"
 import { NextResponse } from "next/server";
+import { generatePassword } from "./password";
 
 const SUBNETS = process.env.SUBNETS?.split(":");
 const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
@@ -18,30 +19,7 @@ export async function POST() {
         return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
     }
 
-    // Start an ECS service using a predefined task in an existing cluster.
-    // Use FARGATE_SPOT capacity provider.
-    let params = {
-        cluster: "falkordb",
-        taskDefinition: "falkordb",
-        capacityProviderStrategy: [
-            {
-                capacityProvider: "FARGATE_SPOT",
-                weight: 1,
-                Base: 0,
-            }
-        ],
-        platformVersion: "LATEST",
-        networkConfiguration: {
-            awsvpcConfiguration: {
-                subnets: SUBNETS,
-                assignPublicIp: "ENABLED",
-                securityGroups: SECURITY_GROUPS
-            },
-        }
-    };
-
     let email = session.user?.email;
-
     if (!email) {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
@@ -60,6 +38,44 @@ export async function POST() {
         return NextResponse.json({ message: "Sandbox already exits" }, { status: 409 })
     }
 
+
+    let password = generatePassword(32);
+
+    // Start an ECS service using a predefined task in an existing cluster.
+    // Use FARGATE_SPOT capacity provider.
+    let params = {
+        cluster: "falkordb",
+        taskDefinition: "falkordb",
+        capacityProviderStrategy: [
+            {
+                capacityProvider: "FARGATE_SPOT",
+                weight: 1,
+                base: 0,
+            }
+        ],
+        platformVersion: "LATEST",
+        networkConfiguration: {
+            awsvpcConfiguration: {
+                subnets: SUBNETS,
+                assignPublicIp: "ENABLED",
+                securityGroups: SECURITY_GROUPS
+            },
+        },
+        overrides: {
+            containerOverrides: [
+                {
+                    name: "falkordb",
+                    environment: [
+                        {
+                            name: "REDIS_ARGS",
+                            value: `--requirepass ${password}`,
+                        },
+                    ],
+                },
+            ],
+        },
+    };
+
     let ecsTask = new RunTaskCommand(params)
     const data = await ecsClient.send(ecsTask);
     if (data.failures?.length) {
@@ -74,9 +90,8 @@ export async function POST() {
     user.task_arn = taskArn;
     user.db_host = "localhost";
     user.db_port = 6379;
-    user.db_password = "password";
-    user.db_create_time = new Date().toISOString();
-
+    user.db_password = password;
+    user.db_create_time = new Date();
     await repo.save(user)
 
     let waitECSTask = await waitUntilTasksRunning(
@@ -168,6 +183,8 @@ export async function GET() {
     if (!user.task_arn) {
         return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
     }
+
+console.log("WWWWWWWWWWWWWWWWWWWWWW    "  + JSON.stringify(user))
 
     return NextResponse.json({
         host: user.db_host,

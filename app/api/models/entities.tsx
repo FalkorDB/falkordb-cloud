@@ -53,11 +53,8 @@ export class UserEntity {
   @Column({ type: "varchar", nullable: true })
   db_password!: string | null
 
-  @Column({ type: "varchar", nullable: true, transformer: transformer.date })
-  db_create_time!: string
-
-  @Column({ type: "varchar", nullable: true, transformer: transformer.date })
-  created!: string | null
+  @Column({ type: "timestamptz", nullable: true })
+  db_create_time!: Date
 
   @Column({ type: "varchar", nullable: true })
   task_arn!: string | null

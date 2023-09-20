@@ -1,25 +1,27 @@
 'use client';
 
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton";
+import Spinning from "../components/spinning";
+
+enum State {
+  Loaded,
+  InitialLoading,
+  BuildingSandbox,
+  DestroyingSandbox,
+}
 
 export default function Page() {
-  
-  const [sandbox, setData] = useState<Sandbox|undefined>(undefined)
-  const [isLoading, setLoading] = useState(true)
 
-  // if (status === "loading") {
-  //   return <p className="text-blue-600 text-3xl">Loading...</p>
-  // }
+  const [sandbox, setSandbox] = useState<Sandbox | undefined>(undefined)
+  const [loadingState, setLoading] = useState(State.InitialLoading)
 
-  // if (status === "unauthenticated") {
-  //   signIn(undefined, { callbackUrl: '/sandbox' })
-  // }
-
+  // fetch sandbox details if exists
   useEffect(() => {
-    if(!isLoading) return
+    if (loadingState != 1) return
 
     fetch('/api/db')
       .then((res) => {
@@ -33,47 +35,60 @@ export default function Page() {
         }
       })
       .then((sandbox) => {
-        setData(sandbox)
-        setLoading(false)
+        setSandbox(sandbox)
+        setLoading(State.Loaded)
       })
-  }, [isLoading])
+  }, [loadingState])
 
-  if (isLoading) {
-    return <p className="text-blue-600 text-3xl">Loading sandbox...</p>
+  // render loading state if needed
+  switch (loadingState){
+    case State.InitialLoading:
+      return <Spinning text="Loading Sandbox..." />
+    case State.BuildingSandbox:
+      return <Spinning text="Building the sandbox..." />
+    case State.DestroyingSandbox:
+      return <Spinning text="Destroying the sandbox..." />
   }
 
-  async function createSandbox() {
+  // Create a sandbox on click
+  function createSandbox(event: any) {
+    setLoading(State.BuildingSandbox)
     fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
+    }).then((res) => {
+      setLoading(State.InitialLoading)
     })
-    setLoading(true)
   }
 
+  // Delete a sandbox on click
   function deleteSandbox() {
+    setLoading(State.DestroyingSandbox)
     fetch('/api/db', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
       }
+    }).then((res) => {
+      setLoading(State.InitialLoading)
     })
-    setLoading(true)
   }
 
+  // render the sandbox details if exists
   if (sandbox) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 space-y-4">
-          <div className="text-4xl font-bold">
+          <div className="text-4xl">
             <div>Host: <span className="text-blue-600">{sandbox.host}</span></div>
             <div>Port: <span className="text-blue-600">{sandbox.port}</span></div>
             <div>Password: <span className="text-blue-600">{sandbox.password}</span></div>
             <div>Created: <span className="text-blue-600">{sandbox.create_time}</span></div>
             <div>Redis URL: <span className="text-blue-600">redis://{sandbox.password}@{sandbox.host}:{sandbox.port}</span></div>
           </div>
-          <Button className="rounded-full bg-blue-600 text-2xl p-3 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
+          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
         </main>
       </div>
     )
@@ -81,7 +96,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <Button className="rounded-full bg-blue-600 text-6xl font-bold p-20 text-black" onClick={createSandbox}>Create Sandbox</Button>
+          <Button className="rounded-full bg-blue-600 text-5xl font-bold p-20 text-black" onClick={createSandbox}>Create Sandbox</Button>
         </main>
       </div>
     )
