@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, RunTaskCommand, RunTaskCommandInput, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, ECSServiceException, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 
 import authOptions from '@/app/api/auth/[...nextauth]/options';
@@ -61,31 +61,42 @@ function getTaskCommand(password: string): RunTaskCommand {
     return new RunTaskCommand(params)
 }
 
-async function waitForTask(user: UserEntity, taskArn: string): Promise<boolean> {
-    let waitECSTask = await waitUntilTasksRunning(
-        { "client": ecsClient, "maxWaitTime": 6000, "maxDelay": 1, "minDelay": 1 },
-        { "cluster": "falkordb", "tasks": [taskArn] }
-    )
-
-    if (waitECSTask.state != 'SUCCESS') {
+async function waitForTask(user: UserEntity, taskArn: string) {
+    try{
+        let waitECSTask = await waitUntilTasksRunning(
+            { client: ecsClient, maxWaitTime: 5, minDelay: 1},
+            { cluster: "falkordb", tasks: [taskArn] }
+        )
+        if (waitECSTask.state != 'SUCCESS') {
+            return false;
+        } 
+    
+        const command = new DescribeNetworkInterfacesCommand({
+            Filters: [
+                {
+                    Name: "private-ip-address",
+                    Values: [waitECSTask.reason?.tasks[0].containers[0].networkInterfaces[0].privateIpv4Address],
+                },
+            ],
+        });
+    
+        // Get the public IP address of the ECS task
+        let network = await ec2Client.send(command)
+        user.db_host = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        if(user.db_host != "") {
+            let repo = dataSource.getRepository(UserEntity)
+            await repo.save(user)    
+        }
+    } catch (err: any) {
+        if (err.name === "TimeoutError") {
+            return false;
+        }
+        let repo = dataSource.getRepository(UserEntity)
+        user.task_arn = null;
+        await repo.save(user)    
+        console.error(err);
         return false;
     } 
-
-    const command = new DescribeNetworkInterfacesCommand({
-        Filters: [
-            {
-                Name: "private-ip-address",
-                Values: [waitECSTask.reason?.tasks[0].containers[0].networkInterfaces[0].privateIpv4Address],
-            },
-        ],
-    });
-
-    // Get the public IP address of the ECS task
-    let network = await ec2Client.send(command)
-    user.db_host = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
-    let repo = dataSource.getRepository(UserEntity)
-    await repo.save(user)    
-    return true
 }
 
 async function getQueryRunner() {
@@ -145,7 +156,7 @@ export async function POST() {
     }
     let taskArn: string | undefined = data.tasks?.[0].taskArn
     if (typeof taskArn !== "string") {
-        console.log("Task ARN is not defined " + taskArn);
+        console.warn("Task ARN is not defined " + taskArn);
         return NextResponse.json({ message: "Task run failed" }, { status: 500 })
     }
 
@@ -161,7 +172,7 @@ export async function POST() {
 
         await queryRunner.commitTransaction()
     } catch (err) {
-        console.log(err);
+        console.error(err);
         await queryRunner.rollbackTransaction()
 
         await cancelTask(taskArn);
@@ -171,10 +182,6 @@ export async function POST() {
         await queryRunner.release()
     }
 
-    let success = await waitForTask(user, taskArn);
-    if(success){
-        return NextResponse.json({ message: "Task run failed" }, { status: 500 })
-    }
     return NextResponse.json({ message: "Task Started" }, { status: 201 })
 }
 
@@ -214,7 +221,7 @@ export async function DELETE() {
     } catch (err) {
         // If the task is already stopped, the StopTask action returns an error.
         if (!(err instanceof InvalidParameterException)) {
-            console.log(err);
+            console.error(err);
             return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
         }
     }
@@ -224,7 +231,7 @@ export async function DELETE() {
         await queryRunner.manager.save(user)
         await queryRunner.commitTransaction()
     } catch (err) {
-        console.log(err);
+        console.error(err);
         await queryRunner.rollbackTransaction()
         return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
     } finally {
@@ -260,10 +267,25 @@ export async function GET() {
         return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
     }
 
+    if (user.db_host == "") {
+        // Check if task is running
+        await waitForTask(user, user.task_arn)
+        if(user.db_host == "") {
+            return NextResponse.json({
+                host: user.db_host,
+                port: user.db_port,
+                password: user.db_password,
+                create_time: user.db_create_time,
+                status: "BUILDING",
+            }, { status: 200 })    
+        }    
+    }
+    
     return NextResponse.json({
         host: user.db_host,
         port: user.db_port,
         password: user.db_password,
         create_time: user.db_create_time,
+        status: "READY",
     }, { status: 200 })
 }

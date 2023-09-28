@@ -1,10 +1,9 @@
 'use client';
 
-import { signIn, useSession } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton";
 import Spinning from "../components/spinning";
 
 enum State {
@@ -15,13 +14,14 @@ enum State {
 }
 
 export default function Page() {
-
+  const [retry_count, retry] = useState(0)
   const [sandbox, setSandbox] = useState<Sandbox | undefined>(undefined)
   const [loadingState, setLoading] = useState(State.InitialLoading)
 
   // fetch sandbox details if exists
   useEffect(() => {
-    if (loadingState != 1) return
+    if (loadingState != State.InitialLoading 
+      && loadingState != State.BuildingSandbox) return
 
     fetch('/api/db')
       .then((res) => {
@@ -36,9 +36,18 @@ export default function Page() {
       })
       .then((sandbox) => {
         setSandbox(sandbox)
-        setLoading(State.Loaded)
+
+        // if sandbox is building, retry after 5 seconds
+        if(sandbox?.status == "BUILDING") {
+          setTimeout(() => {
+            setLoading(State.BuildingSandbox)
+            retry(retry_count + 1)
+          }, 5000)
+        } else {
+          setLoading(State.Loaded)
+        }
       })
-  }, [loadingState])
+  }, [loadingState, retry_count])
 
   // render loading state if needed
   switch (loadingState){
@@ -58,7 +67,8 @@ export default function Page() {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then((res) => {
+    }).catch(() => {
+      console.log("Failed to create sandbox")
       setLoading(State.InitialLoading)
     })
   }

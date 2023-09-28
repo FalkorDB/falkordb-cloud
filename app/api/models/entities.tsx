@@ -58,9 +58,6 @@ export class UserEntity {
 
   @Column({ type: "varchar", nullable: true })
   task_arn!: string | null
-
-  // @OneToMany(() => DatabaseEntity, (database) => database.userId)
-  // databases!: DatabaseEntity[]
 }
 
 @Entity({ name: "accounts" })
@@ -134,24 +131,6 @@ export class SessionEntity {
   @ManyToOne(() => UserEntity, (user) => user.sessions)
   user!: UserEntity
 }
-
-// @Entity({ name: "databases" })
-// export class DatabaseEntity {
-//   @PrimaryGeneratedColumn("uuid")
-//   id!: string
-
-//   @Column({ type: "uuid" })
-//   userId!: string
-
-//   @Column({ type: "varchar", nullable: true })
-//   host!: string
-
-//   @Column({ type: "number", nullable: true })
-//   port!: number
-
-//   @ManyToOne(() => UserEntity, (user) => user.databases)
-//   user!: UserEntity
-// }
 
 @Entity({ name: "verification_tokens" })
 export class VerificationTokenEntity {
