@@ -91,7 +91,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 space-y-4">
-          <div className="text-4xl">
+          <div className="text-2xl">
             <div>Host: <span className="text-blue-600">{sandbox.host}</span></div>
             <div>Port: <span className="text-blue-600">{sandbox.port}</span></div>
             <div>Password: <span className="text-blue-600">{sandbox.password}</span></div>
@@ -106,7 +106,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <Button className="rounded-full bg-blue-600 text-5xl font-bold p-20 text-black" onClick={createSandbox}>Create Sandbox</Button>
+          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-black" onClick={createSandbox}>Create Sandbox</Button>
         </main>
       </div>
     )
