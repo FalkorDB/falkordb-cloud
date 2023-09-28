@@ -9,8 +9,7 @@ const dataSourceOptions: DataSourceOptions = {
     username: process.env.POSTGRES_USER as string,
     password: process.env.POSTGRES_PASSWORD as string,
     database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
-    // synchronize: (env == "development" ? true : false),
-    synchronize: true,
+    synchronize: (env == "development" ? true : false),
     ssl: (env == "development" ? undefined : {
         rejectUnauthorized: false,
         requestCert: true,
