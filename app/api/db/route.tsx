@@ -88,6 +88,20 @@ async function waitForTask(user: UserEntity, taskArn: string): Promise<boolean> 
     return true
 }
 
+async function getQueryRunner() {
+
+    if (!dataSource.isInitialized) {
+        await dataSource.initialize()
+    }
+
+    // establish/take from pool real database connection using our new query runner
+    // Create transaction to make sure only one sandbox is created per user
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    return queryRunner
+}
+
 
 export async function POST() {
 
@@ -103,12 +117,11 @@ export async function POST() {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
+    
     // establish/take from pool real database connection using our new query runner
     // Create transaction to make sure only one sandbox is created per user
-    const queryRunner = dataSource.createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
-
+    const queryRunner = await getQueryRunner()
+    
     const user = await queryRunner.manager.findOneBy(UserEntity, {
         email: email
     })
@@ -181,9 +194,7 @@ export async function DELETE() {
 
     // establish/take from pool real database connection using our new query runner
     // Create transaction to make sure only one sandbox is created per user
-    const queryRunner = dataSource.createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
+    const queryRunner = await getQueryRunner()
 
     let user = await queryRunner.manager.findOneBy(UserEntity, {
         email: email

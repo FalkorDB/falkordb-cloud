@@ -9,6 +9,7 @@ const dataSource = new DataSource({
 
 dataSource.initialize()
     .then(() => {
+        console.log("Database connection established")
         // here you can start to work with your database
     })
     .catch((error) => console.log(error))
