@@ -1,14 +1,16 @@
 import { DataSource, EntitySchema } from "typeorm";
 import dataSourceOptions from "./options";
-import { AccountEntity, SessionEntity, UserEntity } from "../models/entities";
+import { AccountEntity, SessionEntity, UserEntity, VerificationTokenEntity} from "../models/entities";
 
-export const AppDataSource = new DataSource({
+const dataSource = new DataSource({
     ...dataSourceOptions,
-    entities: [UserEntity, AccountEntity, SessionEntity, EntitySchema]
+    entities: [UserEntity, AccountEntity, SessionEntity, VerificationTokenEntity]
 })
 
-AppDataSource.initialize()
+dataSource.initialize()
     .then(() => {
         // here you can start to work with your database
     })
     .catch((error) => console.log(error))
+
+export default dataSource;

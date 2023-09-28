@@ -2,8 +2,7 @@ import { DescribeTasksCommand, ECSClient, InvalidParameterException, RunTaskComm
 import authOptions from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { AppDataSource } from "./appDataSource"
+import dataSource from "./appDataSource"
 import { NextResponse } from "next/server";
 import { generatePassword } from "./password";
 
@@ -24,7 +23,7 @@ export async function POST() {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    let repo = AppDataSource.getRepository(UserEntity)
+    let repo = dataSource.getRepository(UserEntity)
     let user = await repo.findOneBy({
         email: email
     })
@@ -137,7 +136,7 @@ export async function DELETE() {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    let repo = AppDataSource.getRepository(UserEntity)
+    let repo = dataSource.getRepository(UserEntity)
     let user = await repo.findOneBy({
         email: email
     })
@@ -187,7 +186,7 @@ export async function GET() {
     if (!email) {
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
     }
-    let repo = AppDataSource.getRepository(UserEntity)
+    let repo = dataSource.getRepository(UserEntity)
     let user = await repo.findOneBy({
         email: email
     })
