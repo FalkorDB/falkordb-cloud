@@ -45,7 +45,7 @@ export default function Page() {
     case State.InitialLoading:
       return <Spinning text="Loading Sandbox..." />
     case State.BuildingSandbox:
-      return <Spinning text="Building the sandbox..." />
+      return <Spinning text="Building the sandbox... (it might take a couple of minutes)" />
     case State.DestroyingSandbox:
       return <Spinning text="Destroying the sandbox..." />
   }
