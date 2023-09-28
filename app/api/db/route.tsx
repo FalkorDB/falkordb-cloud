@@ -13,7 +13,6 @@ const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
 const ecsClient = new ECSClient({ region: process.env.REGION });
 const ec2Client = new EC2Client({ region: process.env.REGION });
 
-
 function cancelTask(taskArn: string): Promise<any> {
     let params = {
         cluster: "falkordb",
