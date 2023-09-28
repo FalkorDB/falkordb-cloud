@@ -1,10 +1,10 @@
 import { DataSource, EntitySchema } from "typeorm";
 import dataSourceOptions from "./options";
-import { AccountEntity, SessionEntity, UserEntity } from "../models/entities";
+import { AccountEntity, SessionEntity, UserEntity, VerificationTokenEntity} from "../models/entities";
 
 const dataSource = new DataSource({
     ...dataSourceOptions,
-    entities: [UserEntity, AccountEntity, SessionEntity, EntitySchema]
+    entities: [UserEntity, AccountEntity, SessionEntity, VerificationTokenEntity]
 })
 
 dataSource.initialize()
