@@ -61,12 +61,14 @@ export default function Page() {
 
   // Create a sandbox on click
   function createSandbox(event: any) {
-    setLoading(State.BuildingSandbox)
+    event.currentTarget.disabled = true;
     fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
+    }).then((res) => {
+      setLoading(State.BuildingSandbox)
     }).catch(() => {
       console.log("Failed to create sandbox")
       setLoading(State.InitialLoading)

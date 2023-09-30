@@ -7,6 +7,7 @@ import { UserEntity } from "../models/entities";
 import dataSource from "./appDataSource"
 import { NextResponse } from "next/server";
 import { generatePassword } from "./password";
+import { constants } from "crypto";
 
 const SUBNETS = process.env.SUBNETS?.split(":");
 const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
@@ -62,15 +63,15 @@ function getTaskCommand(password: string): RunTaskCommand {
 }
 
 async function waitForTask(user: UserEntity, taskArn: string) {
-    try{
+    try {
         let waitECSTask = await waitUntilTasksRunning(
-            { client: ecsClient, maxWaitTime: 5, minDelay: 1},
+            { client: ecsClient, maxWaitTime: 5, minDelay: 1 },
             { cluster: "falkordb", tasks: [taskArn] }
         )
         if (waitECSTask.state != 'SUCCESS') {
-            return false;
-        } 
-    
+            return "";
+        }
+
         const command = new DescribeNetworkInterfacesCommand({
             Filters: [
                 {
@@ -79,40 +80,17 @@ async function waitForTask(user: UserEntity, taskArn: string) {
                 },
             ],
         });
-    
+
         // Get the public IP address of the ECS task
         let network = await ec2Client.send(command)
-        user.db_host = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
-        if(user.db_host != "") {
-            let repo = dataSource.getRepository(UserEntity)
-            await repo.save(user)    
-        }
+        return network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
     } catch (err: any) {
         if (err.name === "TimeoutError") {
-            return false;
+            return "";
         }
-        let repo = dataSource.getRepository(UserEntity)
-        user.task_arn = null;
-        await repo.save(user)    
-        console.error(err);
-        return false;
-    } 
-}
-
-async function getQueryRunner() {
-
-    if (!dataSource.isInitialized) {
-        await dataSource.initialize()
+        throw err;
     }
-
-    // establish/take from pool real database connection using our new query runner
-    // Create transaction to make sure only one sandbox is created per user
-    const queryRunner = dataSource.createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
-    return queryRunner
 }
-
 
 export async function POST() {
 
@@ -123,66 +101,50 @@ export async function POST() {
         return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
     }
 
-    let email = session.user?.email;
+    const email = session.user?.email;
     if (!email) {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    
-    // establish/take from pool real database connection using our new query runner
-    // Create transaction to make sure only one sandbox is created per user
-    const queryRunner = await getQueryRunner()
-    
-    const user = await queryRunner.manager.findOneBy(UserEntity, {
-        email: email
+    return await dataSource.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
+
+        const user = await transactionalEntityManager.findOneBy(UserEntity, {
+            email: email
+        })
+
+        // Each user is allowed to create a single Sandbox
+        if (!user) {
+            return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
+        }
+
+        if (user.task_arn) {
+            return NextResponse.json({ message: "Sandbox already exits" }, { status: 409 })
+        }
+
+        const password = generatePassword(32);
+
+        // Start an ECS service using a predefined task in an existing cluster.
+        let ecsTask = getTaskCommand(password)
+        const data = await ecsClient.send(ecsTask);
+        if (data.failures?.length) {
+            return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+        }
+        let taskArn: string | undefined = data.tasks?.[0].taskArn
+        if (typeof taskArn !== "string") {
+            console.warn("Task ARN is not defined " + taskArn);
+            return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+        }
+
+        // Save the sandbox info to the user table
+        user.task_arn = taskArn;
+        user.db_host = "";
+        user.db_port = 6379;
+        user.db_password = password;
+        user.db_create_time = new Date();
+
+        await transactionalEntityManager.save(user)
+        return NextResponse.json({ message: "Task Started" }, { status: 201 })
     })
-
-    // Each user is allowed to create a single Sandbox
-    if (!user) {
-        return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    }
-
-    if (user.task_arn) {
-        return NextResponse.json({ message: "Sandbox already exits" }, { status: 409 })
-    }
-
-    const password = generatePassword(32);
-
-    // Start an ECS service using a predefined task in an existing cluster.
-    let ecsTask = getTaskCommand(password)
-    const data = await ecsClient.send(ecsTask);
-    if (data.failures?.length) {
-        return NextResponse.json({ message: "Task run failed" }, { status: 500 })
-    }
-    let taskArn: string | undefined = data.tasks?.[0].taskArn
-    if (typeof taskArn !== "string") {
-        console.warn("Task ARN is not defined " + taskArn);
-        return NextResponse.json({ message: "Task run failed" }, { status: 500 })
-    }
-
-    // Save the sandbox info to the user table
-    user.task_arn = taskArn;
-    user.db_host = "";
-    user.db_port = 6379;
-    user.db_password = password;
-    user.db_create_time = new Date();
-
-    try {
-        await queryRunner.manager.save(user)
-
-        await queryRunner.commitTransaction()
-    } catch (err) {
-        console.error(err);
-        await queryRunner.rollbackTransaction()
-
-        await cancelTask(taskArn);
-
-        return NextResponse.json({ message: "Task run failed" }, { status: 500 })
-    } finally {
-        await queryRunner.release()
-    }
-
-    return NextResponse.json({ message: "Task Started" }, { status: 201 })
 }
 
 export async function DELETE() {
@@ -193,52 +155,41 @@ export async function DELETE() {
         return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
     }
 
-    let email = session.user?.email;
-
+    const email = session.user?.email;
     if (!email) {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    // establish/take from pool real database connection using our new query runner
-    // Create transaction to make sure only one sandbox is created per user
-    const queryRunner = await getQueryRunner()
+    return await dataSource.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
-    let user = await queryRunner.manager.findOneBy(UserEntity, {
-        email: email
-    })
+        let user = await transactionalEntityManager.findOneBy(UserEntity, {
+            email: email
+        })
 
-    // Stop an ECS service using a predefined task in an existing cluster.
-    if (!user) {
-        return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    }
-
-    if (!user.task_arn) {
-        return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
-    }
-
-    try {
-        await cancelTask(user.task_arn);
-    } catch (err) {
-        // If the task is already stopped, the StopTask action returns an error.
-        if (!(err instanceof InvalidParameterException)) {
-            console.error(err);
-            return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
+        // Stop an ECS service using a predefined task in an existing cluster.
+        if (!user) {
+            return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
         }
-    }
 
-    user.task_arn = null;
-    try {
-        await queryRunner.manager.save(user)
-        await queryRunner.commitTransaction()
-    } catch (err) {
-        console.error(err);
-        await queryRunner.rollbackTransaction()
-        return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
-    } finally {
-        await queryRunner.release()
-    }
+        if (!user.task_arn) {
+            return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
+        }
 
-    return NextResponse.json({ message: "Task Stopped" }, { status: 200 })
+        try {
+            await cancelTask(user.task_arn);
+        } catch (err) {
+            // If the task is already stopped, the StopTask action returns an error.
+            if (!(err instanceof InvalidParameterException)) {
+                console.error(err);
+                return NextResponse.json({ message: "Task stop failed" }, { status: 500 })
+            }
+        }
+
+        user.task_arn = null;
+        await transactionalEntityManager.save(user)
+
+        return NextResponse.json({ message: "Task Stopped" }, { status: 200 })
+    })
 }
 
 export async function GET() {
@@ -249,43 +200,54 @@ export async function GET() {
         return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
     }
 
-    let email = session.user?.email;
-
+    const email = session.user?.email;
     if (!email) {
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
     }
-    let repo = dataSource.getRepository(UserEntity)
-    let user = await repo.findOneBy({
-        email: email
+
+    return await dataSource.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
+
+        const user = await transactionalEntityManager.findOneBy(UserEntity, {
+            email: email
+        })
+        if (!user) {
+            return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
+        }
+        if (!user.task_arn) {
+            return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
+        }
+
+        if (user.db_host == "") {
+            try {
+                // Check if task is running
+                user.db_host = await waitForTask(user, user.task_arn)
+                if (user.db_host == "") {
+                    return NextResponse.json({
+                        host: user.db_host,
+                        port: user.db_port,
+                        password: user.db_password,
+                        create_time: user.db_create_time,
+                        status: "BUILDING",
+                    }, { status: 200 })
+                }
+                await transactionalEntityManager.save(user)
+            } catch (err) {
+                // Fatal error in the task 
+                // TODO consider retry on network issues
+                // await cancelTask(taskArn);
+                console.error(err);
+                user.task_arn = null;
+                await transactionalEntityManager.save(user)                    
+                return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+            }
+        }
+
+        return NextResponse.json({
+            host: user.db_host,
+            port: user.db_port,
+            password: user.db_password,
+            create_time: user.db_create_time,
+            status: "READY",
+        }, { status: 200 })
     })
-
-    // Stop an ECS service using a predefined task in an existing cluster.
-    if (!user) {
-        return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    }
-    if (!user.task_arn) {
-        return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
-    }
-
-    if (user.db_host == "") {
-        // Check if task is running
-        await waitForTask(user, user.task_arn)
-        if(user.db_host == "") {
-            return NextResponse.json({
-                host: user.db_host,
-                port: user.db_port,
-                password: user.db_password,
-                create_time: user.db_create_time,
-                status: "BUILDING",
-            }, { status: 200 })    
-        }    
-    }
-    
-    return NextResponse.json({
-        host: user.db_host,
-        port: user.db_port,
-        password: user.db_password,
-        create_time: user.db_create_time,
-        status: "READY",
-    }, { status: 200 })
 }
