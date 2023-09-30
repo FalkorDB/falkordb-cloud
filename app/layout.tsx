@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { NextAuthProvider } from "./providers";
 import GoogleAnalytics from "@/app/components/GoogleAnalytics";
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS} />
         ) : null}
         <NextAuthProvider>{children}</NextAuthProvider>
+        <Toaster />
       </body>
     </html>
   )

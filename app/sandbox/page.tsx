@@ -5,6 +5,8 @@ import { Sandbox } from "@/app/api/db/sandbox";
 import { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
 import Spinning from "../components/spinning";
+import { useToast } from "@/components/ui/use-toast"
+
 
 enum State {
   Loaded,
@@ -17,6 +19,9 @@ export default function Page() {
   const [retry_count, retry] = useState(0)
   const [sandbox, setSandbox] = useState<Sandbox | undefined>(undefined)
   const [loadingState, setLoading] = useState(State.InitialLoading)
+
+  const { toast } = useToast()
+
 
   // fetch sandbox details if exists
   useEffect(() => {
@@ -88,17 +93,26 @@ export default function Page() {
     })
   }
 
+  function copyToClipboard(event: any) {
+    navigator.clipboard.writeText(event.target.innerText)
+    toast({
+      title: "Copied to clipboard",
+      description: "The value has been copied to your clipboard.",
+    })
+  }
+
   // render the sandbox details if exists
   if (sandbox) {
+    let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 space-y-4">
           <div className="text-2xl">
-            <div>Host: <span className="text-blue-600">{sandbox.host}</span></div>
-            <div>Port: <span className="text-blue-600">{sandbox.port}</span></div>
-            <div>Password: <span className="text-blue-600">{sandbox.password}</span></div>
-            <div>Created: <span className="text-blue-600">{sandbox.create_time}</span></div>
-            <div>Redis URL: <span className="text-blue-600">redis://{sandbox.password}@{sandbox.host}:{sandbox.port}</span></div>
+            <div>Host: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.host}</Button></div>
+            <div>Port: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.port}</Button></div>
+            <div>Password: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.password}</Button></div>
+            <div>Created: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.create_time}</Button></div>
+            <div>Redis URL: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{redisURL}</Button></div>
           </div>
           <Button className="rounded-full bg-blue-600 text-4xl p-8 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
         </main>
