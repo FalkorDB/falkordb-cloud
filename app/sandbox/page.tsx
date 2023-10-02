@@ -6,6 +6,8 @@ import { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
 import Spinning from "../components/spinning";
 import { useToast } from "@/components/ui/use-toast"
+import { CypherInput } from "../components/cypherInput";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 
 enum State {
@@ -25,7 +27,7 @@ export default function Page() {
 
   // fetch sandbox details if exists
   useEffect(() => {
-    if (loadingState != State.InitialLoading 
+    if (loadingState != State.InitialLoading
       && loadingState != State.BuildingSandbox) return
 
     fetch('/api/db')
@@ -43,7 +45,7 @@ export default function Page() {
         setSandbox(sandbox)
 
         // if sandbox is building, retry after 5 seconds
-        if(sandbox?.status == "BUILDING") {
+        if (sandbox?.status == "BUILDING") {
           setTimeout(() => {
             setLoading(State.BuildingSandbox)
             retry(retry_count + 1)
@@ -55,7 +57,7 @@ export default function Page() {
   }, [loadingState, retry_count])
 
   // render loading state if needed
-  switch (loadingState){
+  switch (loadingState) {
     case State.InitialLoading:
       return <Spinning text="Loading Sandbox..." />
     case State.BuildingSandbox:
@@ -101,20 +103,50 @@ export default function Page() {
     })
   }
 
+  async function sendQuery(query: string) {
+    let result = await fetch(`/api/query?q=${query}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (result.status<300) {
+      let res = await result.json()
+      return res.result  
+    }
+    toast({
+      title: "Error",
+      description: await result.text(),
+    })
+    return []
+  }
+
   // render the sandbox details if exists
   if (sandbox) {
     let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <main className="flex flex-col items-center justify-center flex-1 px-20 space-y-4">
-          <div className="text-2xl">
-            <div>Host: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.host}</Button></div>
-            <div>Port: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.port}</Button></div>
-            <div>Password: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.password}</Button></div>
-            <div>Created: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{sandbox.create_time}</Button></div>
-            <div>Redis URL: <Button className="bg-transparent text-2xl text-blue-600" onClick={copyToClipboard}>{redisURL}</Button></div>
+      <div className="flex flex-col items-center justify-center min-h-screen py-4">
+        <main className="flex flex-col flex-1">
+          <div className="border-b-2 text-2xl">
+            <Dialog>
+              <DialogTrigger className="rounded-full bg-blue-600 p-2 text-black">Delete Sandbox</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete your sandbox
+                    and remove your data from our servers.
+                  </DialogDescription>
+                </DialogHeader>
+                <Button className="rounded-full bg-blue-600 p-4 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
+              </DialogContent>
+            </Dialog>
+            <div>Host: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.host}</Button></div>
+            <div>Port: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.port}</Button></div>
+            <div>Password: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.password}</Button></div>
+            <div>Redis URL: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{redisURL}</Button></div>
           </div>
-          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
+          <CypherInput graphs={[]} onSubmit={sendQuery} />
         </main>
       </div>
     )
@@ -128,4 +160,3 @@ export default function Page() {
     )
   }
 }
-

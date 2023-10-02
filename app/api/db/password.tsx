@@ -1,7 +1,7 @@
 
 
 // Define the characters that can be used in the password
-const PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!&#$^<>-"
+const PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 
 // A function that generates a random password of a given length
