@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'FalkorDB Cloud',
-  description: 'FalkorDB Cloud is a cloud service for FalkorDB.',
+  description: 'FalkorDB Cloud is an hosted cloud service for FalkorDB.',
 }
 
 export default function RootLayout({
