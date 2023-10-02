@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Combobox } from './combobox';
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -35,7 +36,7 @@ function isValidCypher(query: string) {
 }
 
 // A component that renders an input box for Cypher queries
-export function CypherInput(props: { onSubmit: (query: string) => Promise<any[]> }) {
+export function CypherInput(props: { graphs: string[], onSubmit: (query: string) => Promise<any> }) {
 
     const [results, setResults] = useState<any[]>([]);
 
@@ -44,6 +45,10 @@ export function CypherInput(props: { onSubmit: (query: string) => Promise<any[]>
 
     // A state variable that stores the validation result
     const [valid, setValid] = useState(true);
+
+    const options = props.graphs.map((graph) => {
+        return {label: graph, value: graph}
+    }) 
 
     // A function that handles the change event of the input box
     function handleChange(event: any) {
@@ -65,13 +70,14 @@ export function CypherInput(props: { onSubmit: (query: string) => Promise<any[]>
         // If the query is valid, pass it to the parent component as a prop
         if (valid) {
             let newResults = await props.onSubmit(query);
-            setResults(newResults)
+            setResults(newResults.data?? [])
         }
     }
 
     // Return the JSX element that renders the input box and a submit button
     return (
         <div >
+            <Combobox options={options} title={"Select Graph..."}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label className="text-2xl" htmlFor="cypher">Query:</Label>
                 <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />

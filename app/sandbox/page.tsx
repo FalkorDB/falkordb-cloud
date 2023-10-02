@@ -110,10 +110,16 @@ export default function Page() {
         'Content-Type': 'application/json'
       }
     })
-    let res = await result.json()
-    return res.result.data
+    if (result.status<300) {
+      let res = await result.json()
+      return res.result  
+    }
+    toast({
+      title: "Error",
+      description: await result.text(),
+    })
+    return []
   }
-
 
   // render the sandbox details if exists
   if (sandbox) {
@@ -140,7 +146,7 @@ export default function Page() {
             <div>Password: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.password}</Button></div>
             <div>Redis URL: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{redisURL}</Button></div>
           </div>
-          <CypherInput onSubmit={sendQuery} />
+          <CypherInput graphs={[]} onSubmit={sendQuery} />
         </main>
       </div>
     )
