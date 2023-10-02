@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   console.warn(process.env.CRON_TOKEN)
 
 
-  if (!authorization || authorization !== process.env.CRON_TOKEN) {
+  if (!authorization || authorization !== process.env.CRON_SECRET) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   } 
 
