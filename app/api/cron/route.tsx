@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   let authorization = request.headers.get('Authorization');
 
   console.warn(authorization)
-  console.warn(process.env.CRON_TOKEN)
+  console.warn(process.env.CRON_SECRET)
 
 
   if (!authorization || authorization !== process.env.CRON_SECRET) {
