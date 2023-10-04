@@ -76,15 +76,15 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
 
     // Return the JSX element that renders the input box and a submit button
     return (
-        <div >
+        <div className="bg-white dark:bg-gray-800 shadow p-4 rounded m-2">
             <Combobox options={options} title={"Select Graph..."}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
-                <Label className="text-2xl" htmlFor="cypher">Query:</Label>
+                <Label htmlFor="cypher">Query:</Label>
                 <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
-                <Button className="rounded-full bg-blue-600 text-1xl p-4 text-black" type="submit">Submit</Button>
+                <Button className="rounded-full bg-blue-600 p-2 text-slate-50" type="submit">Submit</Button>
             </form>
             {/* Show an error message if the query is invalid */}
-            {!valid && <p>Invalid Cypher query. Please check the syntax.</p>}
+            {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
             <ul>
                 {/* Render the lines as list items */}
                 {results.map((line, index) => (
