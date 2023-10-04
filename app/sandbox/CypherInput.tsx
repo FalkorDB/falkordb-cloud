@@ -81,7 +81,7 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label htmlFor="cypher">Query:</Label>
                 <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
-                <Button className="rounded-full bg-blue-600 p-2 text-slate-50" type="submit">Submit</Button>
+                <Button className="rounded-full bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
             </form>
             {/* Show an error message if the query is invalid */}
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}

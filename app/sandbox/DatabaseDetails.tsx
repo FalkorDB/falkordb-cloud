@@ -2,23 +2,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { Sandbox } from "@/app/api/db/sandbox";
-
+import { DatabaseLine } from "./DatabaseLine";
 
 export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void }) {
 
-    const { toast } = useToast()
-
-    function copyToClipboard(event: any) {
-        navigator.clipboard.writeText(event.target.innerText)
-        toast({
-            title: "Copied to clipboard",
-            description: "The value has been copied to your clipboard.",
-        })
-    }
-
     let sandbox = props.sandbox
     let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
-    // Return the JSX element that renders the input box and a submit button
     return (
         <>
             <Dialog>
@@ -36,10 +25,10 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     <Button className="rounded-full bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
                 </DialogContent>
             </Dialog>
-            <div>Host: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.host}</Button></div>
-            <div>Port: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.port}</Button></div>
-            <div>Password: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.password}</Button></div>
-            <div>Redis URL: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{redisURL}</Button></div>
+            <DatabaseLine label="Host" value={sandbox.host} />
+            <DatabaseLine label="Port" value={sandbox.port.toString()} />
+            <DatabaseLine label="Password" value={sandbox.password} />
+            <DatabaseLine label="Redis URL" value={redisURL} />
         </>
     );
 }
