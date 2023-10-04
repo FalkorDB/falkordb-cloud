@@ -126,10 +126,10 @@ export default function Page() {
     let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-4">
-        <main className="flex flex-col flex-1">
-          <div className="border-b-2 text-2xl">
+        <main className="flex flex-col flex-1 m-4">
+          <div className="border-b-2 dark:bg-gray-800 shadow p-4 m-2">
             <Dialog>
-              <DialogTrigger className="rounded-full bg-blue-600 p-2 text-black">Delete Sandbox</DialogTrigger>
+              <DialogTrigger className="rounded-full bg-blue-600 p-2 text-slate-50">Delete Sandbox</DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Are you sure absolutely sure?</DialogTitle>
@@ -138,15 +138,15 @@ export default function Page() {
                     and remove your data from our servers.
                   </DialogDescription>
                 </DialogHeader>
-                <Button className="rounded-full bg-blue-600 p-4 text-black" onClick={deleteSandbox}>Delete Sandbox</Button>
+                <Button className="rounded-full bg-blue-600 p-4 text-slate-50" onClick={deleteSandbox}>Delete Sandbox</Button>
               </DialogContent>
             </Dialog>
-            <div>Host: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.host}</Button></div>
-            <div>Port: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.port}</Button></div>
-            <div>Password: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{sandbox.password}</Button></div>
-            <div>Redis URL: <Button className="text-2xl bg-transparent text-blue-600 px-0" onClick={copyToClipboard}>{redisURL}</Button></div>
+            <div>Host: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.host}</Button></div>
+            <div>Port: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.port}</Button></div>
+            <div>Password: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.password}</Button></div>
+            <div>Redis URL: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{redisURL}</Button></div>
           </div>
-          <CypherInput graphs={[]} onSubmit={sendQuery} />
+          <CypherInput graphs={["falkordb", "graph2"]} onSubmit={sendQuery} />
         </main>
       </div>
     )
@@ -154,7 +154,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-black" onClick={createSandbox}>Create Sandbox</Button>
+          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-slate-50" onClick={createSandbox}>Create Sandbox</Button>
         </main>
       </div>
     )
