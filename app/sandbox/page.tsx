@@ -6,16 +6,9 @@ import { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
 import Spinning from "../components/spinning";
 import { useToast } from "@/components/ui/use-toast"
-import { CypherInput } from "../components/cypherInput";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-
-
-enum State {
-  Loaded,
-  InitialLoading,
-  BuildingSandbox,
-  DestroyingSandbox,
-}
+import { CypherInput } from "./CypherInput";
+import { DatabaseDetails } from "./DatabaseDetails";
+import { LoadingState, State } from "./LoadingState";
 
 export default function Page() {
   const [retry_count, retry] = useState(0)
@@ -23,7 +16,6 @@ export default function Page() {
   const [loadingState, setLoading] = useState(State.InitialLoading)
 
   const { toast } = useToast()
-
 
   // fetch sandbox details if exists
   useEffect(() => {
@@ -57,13 +49,8 @@ export default function Page() {
   }, [loadingState, retry_count])
 
   // render loading state if needed
-  switch (loadingState) {
-    case State.InitialLoading:
-      return <Spinning text="Loading Sandbox..." />
-    case State.BuildingSandbox:
-      return <Spinning text="Building the sandbox... (it might take a couple of minutes)" />
-    case State.DestroyingSandbox:
-      return <Spinning text="Destroying the sandbox..." />
+  if (loadingState != State.Loaded){
+    return <LoadingState state={loadingState}/>
   }
 
   // Create a sandbox on click
@@ -95,14 +82,6 @@ export default function Page() {
     })
   }
 
-  function copyToClipboard(event: any) {
-    navigator.clipboard.writeText(event.target.innerText)
-    toast({
-      title: "Copied to clipboard",
-      description: "The value has been copied to your clipboard.",
-    })
-  }
-
   async function sendQuery(query: string) {
     let result = await fetch(`/api/query?q=${query}`, {
       method: 'GET',
@@ -123,30 +102,15 @@ export default function Page() {
 
   // render the sandbox details if exists
   if (sandbox) {
-    let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-4">
         <main className="flex flex-col flex-1 m-4">
-          <div className="border-b-2 bg-white dark:bg-gray-800 shadow p-4 m-2">
-            <Dialog>
-              <DialogTrigger className="rounded-full bg-blue-600 p-2 text-slate-50">Delete Sandbox</DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                  <DialogDescription>
-                    This action cannot be undone. This will permanently delete your sandbox
-                    and remove your data from our servers.
-                  </DialogDescription>
-                </DialogHeader>
-                <Button className="rounded-full bg-blue-600 p-4 text-slate-50" onClick={deleteSandbox}>Delete Sandbox</Button>
-              </DialogContent>
-            </Dialog>
-            <div>Host: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.host}</Button></div>
-            <div>Port: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.port}</Button></div>
-            <div>Password: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{sandbox.password}</Button></div>
-            <div>Redis URL: <Button className="bg-transparent text-blue-600 p-2" onClick={copyToClipboard}>{redisURL}</Button></div>
+          <div className="bg-white dark:bg-gray-800 shadow p-4 m-2">
+            <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </div>
-          <CypherInput graphs={["falkordb", "graph2"]} onSubmit={sendQuery} />
+          <div className="bg-white dark:bg-gray-800 shadow p-4 m-2">
+            <CypherInput graphs={["falkordb", "graph2"]} onSubmit={sendQuery} />
+          </div>
         </main>
       </div>
     )
