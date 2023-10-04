@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Combobox } from './combobox';
+import { Combobox } from '../components/combobox';
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -76,7 +76,7 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
 
     // Return the JSX element that renders the input box and a submit button
     return (
-        <div className="bg-white dark:bg-gray-800 shadow p-4 rounded m-2">
+        <>
             <Combobox options={options} title={"Select Graph..."}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label htmlFor="cypher">Query:</Label>
@@ -91,6 +91,6 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
                     <li key={index}>{JSON.stringify(line)}</li>
                 ))}
             </ul>
-        </div>
+        </>
     );
 }
