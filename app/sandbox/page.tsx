@@ -127,7 +127,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-4">
         <main className="flex flex-col flex-1 m-4">
-          <div className="border-b-2 dark:bg-gray-800 shadow p-4 m-2">
+          <div className="border-b-2 bg-white dark:bg-gray-800 shadow p-4 m-2">
             <Dialog>
               <DialogTrigger className="rounded-full bg-blue-600 p-2 text-slate-50">Delete Sandbox</DialogTrigger>
               <DialogContent>

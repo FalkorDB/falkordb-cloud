@@ -11,7 +11,9 @@ export const NextAuthProvider = ({ children }: Props) => {
   return (
     <SessionProvider>
       <Navigation />
+      <div className="bg-gray-100">
       {children}
+      </div>
     </SessionProvider>
   )
 };
