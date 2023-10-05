@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import {useState, Dispatch, SetStateAction} from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -23,9 +23,8 @@ export interface Option {
   label: string
 }
 
-export function Combobox(props: { title: string, options: Option[] }) {
-  const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+export function Combobox(props: { title: string, options: Option[], selectedValue: string|null,  setSelectedValue: Dispatch<SetStateAction<null>>}) {
+  const [open, setOpen] = useState(false)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -36,8 +35,8 @@ export function Combobox(props: { title: string, options: Option[] }) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value
-            ? props.options.find((option) => option.value === value)?.label
+          {props.selectedValue
+            ? props.options.find((option) => option.value === props.selectedValue)?.label
             : props.title}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -51,14 +50,14 @@ export function Combobox(props: { title: string, options: Option[] }) {
               <CommandItem
                 key={option.value}
                 onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue)
+                  props.setSelectedValue(currentValue === props.selectedValue ? "" : currentValue)
                   setOpen(false)
                 }}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
+                    props.selectedValue === option.value ? "opacity-100" : "opacity-0"
                   )}
                 />
                 {option.label}

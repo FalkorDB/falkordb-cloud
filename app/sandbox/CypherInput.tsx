@@ -36,7 +36,7 @@ function isValidCypher(query: string) {
 }
 
 // A component that renders an input box for Cypher queries
-export function CypherInput(props: { graphs: string[], onSubmit: (query: string) => Promise<any> }) {
+export function CypherInput(props: { graphs: string[], onSubmit: (graph: string, query: string) => Promise<any> }) {
 
     const [results, setResults] = useState<any[]>([]);
 
@@ -45,6 +45,7 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
 
     // A state variable that stores the validation result
     const [valid, setValid] = useState(true);
+    const [selectedValue, setSelectedValue] = useState(null);
 
     const options = props.graphs.map((graph) => {
         return {label: graph, value: graph}
@@ -69,15 +70,14 @@ export function CypherInput(props: { graphs: string[], onSubmit: (query: string)
 
         // If the query is valid, pass it to the parent component as a prop
         if (valid) {
-            let newResults = await props.onSubmit(query);
+            let newResults = await props.onSubmit(selectedValue?? "falkordb", query);
             setResults(newResults.data?? [])
         }
     }
-
     // Return the JSX element that renders the input box and a submit button
     return (
         <>
-            <Combobox options={options} title={"Select Graph..."}/>
+            <Combobox options={options} title={"Select Graph..."} selectedValue={selectedValue} setSelectedValue={setSelectedValue}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label htmlFor="cypher">Query:</Label>
                 <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
