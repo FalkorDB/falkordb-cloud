@@ -1,12 +1,11 @@
 import authOptions from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
-import { NextResponse } from "next/server";
-import dataSource from '../db/appDataSource';
-import { UserEntity } from '../models/entities';
+import { NextRequest, NextResponse } from "next/server";
+import dataSource from '../../db/appDataSource';
+import { UserEntity } from '../../models/entities';
 import { createClient, Graph } from 'redis';
 
-
-export async function GET(request: Request) {
+export async function GET(request: NextRequest,  { params }: { params: { graph: string } }) {
 
     const session = await getServerSession(authOptions)
 
@@ -27,10 +26,12 @@ export async function GET(request: Request) {
         url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
     }).connect();
 
-    const graph = new Graph(client, 'graph');
+    const graph = new Graph(client, params.graph);
     
-    const {searchParams} = new URL(request.url);
-    let q = searchParams.get('q')?.toString() || ""
+    const q = request.nextUrl.searchParams.get("q");
+    if (!q) {
+        return NextResponse.json({ message: "Missing query parameter 'q'" }, { status: 400 })
+    }
 
     try{
         let result = await graph.query(q)

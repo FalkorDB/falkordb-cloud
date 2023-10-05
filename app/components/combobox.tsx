@@ -1,7 +1,8 @@
 "use client"
 
-import * as React from "react"
+import { useState, Dispatch, SetStateAction, createRef } from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -17,16 +18,31 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
 
-export interface Option {
-  value: string
-  label: string
-}
+export function Combobox(props: {
+  type?: string,
+  options: string[],
+  addOption: Dispatch<SetStateAction<string[]>>,
+  selectedValue: string,
+  setSelectedValue: Dispatch<SetStateAction<string>>
+}) {
+  const [open, setOpen] = useState(false)
+  const inputRef = createRef<HTMLInputElement>()
 
-export function Combobox(props: { title: string, options: Option[] }) {
-  const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  // read the text in the create input box and add it to the list of options
+  function onAddOption(event: any) {
+    setOpen(false)
+    if (!inputRef.current?.value) {
+      return
+    }
+    props.options.push(inputRef.current.value)
+    props.addOption(props.options)
 
+  }
+
+  const entityType = props.type ?? ""
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -36,9 +52,9 @@ export function Combobox(props: { title: string, options: Option[] }) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value
-            ? props.options.find((option) => option.value === value)?.label
-            : props.title}
+          {props.selectedValue
+            ? props.options.find((option) => option === props.selectedValue)
+            : `Select ${entityType}...`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -49,21 +65,39 @@ export function Combobox(props: { title: string, options: Option[] }) {
           <CommandGroup>
             {props.options.map((option) => (
               <CommandItem
-                key={option.value}
+                key={option}
                 onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue)
+                  if (currentValue != props.selectedValue) {
+                    props.setSelectedValue(currentValue)
+                  }
                   setOpen(false)
                 }}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
+                    props.selectedValue === option ? "opacity-100" : "opacity-0"
                   )}
                 />
-                {option.label}
+                {option}
               </CommandItem>
             ))}
+            <Separator orientation="horizontal" />
+
+            <Dialog>
+              <DialogTrigger>
+                <CommandItem>Create new {entityType}...</CommandItem>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a new {entityType}?</DialogTitle>
+                  <DialogDescription>
+                    <Input type="text" ref={inputRef} id="create" name="create" placeholder={`${entityType} name ...`} />
+                  </DialogDescription>
+                </DialogHeader>
+                <Button className="rounded-full bg-blue-600 p-4 text-slate-50" type="submit" onClick={onAddOption}>Create</Button>
+              </DialogContent>
+            </Dialog>
           </CommandGroup>
         </Command>
       </PopoverContent>

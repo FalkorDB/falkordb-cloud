@@ -12,7 +12,7 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
         <>
             <Dialog>
                 <DialogTrigger>
-                    <Button className="rounded-full bg-blue-600 p-2 text-slate-50">Delete Sandbox</Button>
+                    <Button className="rounded-full bg-blue-600 p-2 text-slate-50 m-2">Delete Sandbox</Button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>

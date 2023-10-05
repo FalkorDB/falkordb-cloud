@@ -17,7 +17,7 @@ export function DatabaseLine(props: { label: string, value: string }) {
 
     return (
         <div>{props.label}: <Button className="bg-transparent text-blue-600 p-2 hover:text-slate-50" onClick={copyToClipboard}>
-            {props.value}&ensp; 
+            {props.value}&ensp;
             <svg
                 className=" h-4 w-4"
                 fill="none"

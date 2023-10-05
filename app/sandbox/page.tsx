@@ -80,8 +80,8 @@ export default function Page() {
     })
   }
 
-  async function sendQuery(query: string) {
-    let result = await fetch(`/api/query?q=${query}`, {
+  async function sendQuery(graph: string, query: string) {
+    let result = await fetch(`/api/graph/${graph}?q=${query}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -103,10 +103,10 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-4">
         <main className="flex flex-col flex-1 m-4">
-          <div className="bg-white dark:bg-gray-800 shadow p-4 m-2">
+          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
             <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </div>
-          <div className="bg-white dark:bg-gray-800 shadow p-4 m-2">
+          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
             <CypherInput graphs={["falkordb", "graph2"]} onSubmit={sendQuery} />
           </div>
         </main>
