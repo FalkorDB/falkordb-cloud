@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Logo from "./Logo";
-import Button from "./Button";
+import AvatarButton from "./AvatarButton";
 
 const Navbar = ({ toggle }: { toggle: () => void }) => {
   return (
@@ -50,7 +50,7 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
               </li>
             </ul>
             <div className="hidden md:block">
-              <Button />
+              <AvatarButton />
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AvatarButton from "../navbar/AvatarButton";
 
 const Sidebar = ({
   isOpen,
@@ -27,6 +28,9 @@ const Sidebar = ({
         </button>
 
         <ul className="sidebar-nav text-center leading-relaxed text-xl text-slate-50">
+          <li>
+              <AvatarButton />
+          </li>
           <li>
             <Link href="/" onClick={toggle}><p>Home</p></Link>
           </li>
