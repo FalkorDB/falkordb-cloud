@@ -1,6 +1,25 @@
 'use client';
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, signIn, signOut } from "next-auth/react"
+
+// A function that takes a full name as a string and returns its initials as a string
+function getInitials(fullName: string): string {
+  // Split the full name by spaces and store the parts in an array
+  let nameParts = fullName.split(" ");
+  // Initialize an empty string to store the initials
+  let initials = "";
+  // Loop through the name parts array
+  for (let part of nameParts) {
+    // If the part is not empty, append its first character (uppercased) to the initials string
+    if (part) {
+      initials += part[0].toUpperCase();
+    }
+  }
+  // Return the initials string
+  return initials;
+}
+
 
 export default function Button() {
   const { data: session, status } = useSession()
@@ -13,10 +32,22 @@ export default function Button() {
       </button>
     )
   }
+
+  const name = session?.user?.name;
+  const image = session?.user?.image?? ""
+  const initials =  name ? getInitials(name) : ""
   return (
     <button onClick={() => signOut({ callbackUrl: '/' })}
       className="h-12 rounded-lg font-bold px-5 text-slate-50">
-      Log Out
+      <div className="flex items-center gap-3">
+        <Avatar className="h-9 w-9">
+          <AvatarImage alt="@shadcn" src={image} />
+          <AvatarFallback className="text-blue-600">{initials}</AvatarFallback>
+        </Avatar>
+        <div className="grid gap-0.5 text-xs">
+          <div className="text-slate-50">{name}</div>
+        </div>
+      </div>
     </button>
   )
 }
