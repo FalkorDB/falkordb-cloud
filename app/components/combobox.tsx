@@ -39,7 +39,12 @@ export function Combobox(props: {
     }
     props.options.push(inputRef.current.value)
     props.addOption(props.options)
+  }
 
+  function handleKeyDown(event: any) {
+    if (event.key === "Enter") {
+      onAddOption(event);
+    }
   }
 
   const entityType = props.type ?? ""
@@ -92,7 +97,7 @@ export function Combobox(props: {
                 <DialogHeader>
                   <DialogTitle>Create a new {entityType}?</DialogTitle>
                   <DialogDescription>
-                    <Input type="text" ref={inputRef} id="create" name="create" placeholder={`${entityType} name ...`} />
+                    <Input type="text" ref={inputRef} id="create" name="create" onKeyDown={handleKeyDown} placeholder={`${entityType} name ...`} />
                   </DialogDescription>
                 </DialogHeader>
                 <Button className="rounded-full bg-blue-600 p-4 text-slate-50" type="submit" onClick={onAddOption}>Create</Button>

@@ -50,7 +50,12 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
     const [graphs, addGraph] = useState(props.graphs);
 
     // A function that handles the change event of the input box
-    function handleChange(event: any) {
+    async function handleChange(event: any) {
+
+        if (event.key === "Enter") {
+            await handleSubmit(event);
+        }
+
         // Get the new value of the input box
         const value = event.target.value;
 
@@ -72,13 +77,14 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
             setResults(newResults.data?? [])
         }
     }
+
     // Return the JSX element that renders the input box and a submit button
     return (
         <>
             <Combobox type={"Graph"} options={graphs} addOption={addGraph} selectedValue={selectedValue} setSelectedValue={setSelectedValue}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label htmlFor="cypher">Query:</Label>
-                <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
+                <Input className='w-[50vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange}/>
                 <Button className="rounded-full bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
             </form>
             {/* Show an error message if the query is invalid */}
