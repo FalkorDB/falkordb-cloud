@@ -45,11 +45,9 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
 
     // A state variable that stores the validation result
     const [valid, setValid] = useState(true);
-    const [selectedValue, setSelectedValue] = useState(null);
+    const [selectedValue, setSelectedValue] = useState("");
 
-    const options = props.graphs.map((graph) => {
-        return {label: graph, value: graph}
-    }) 
+    const [graphs, addGraph] = useState(props.graphs);
 
     // A function that handles the change event of the input box
     function handleChange(event: any) {
@@ -77,7 +75,7 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
     // Return the JSX element that renders the input box and a submit button
     return (
         <>
-            <Combobox options={options} title={"Select Graph..."} selectedValue={selectedValue} setSelectedValue={setSelectedValue}/>
+            <Combobox type={"Graph"} options={graphs} addOption={addGraph} selectedValue={selectedValue} setSelectedValue={setSelectedValue}/>
             <form className="flex items-center py-4 space-x-4" onSubmit={handleSubmit}>
                 <Label htmlFor="cypher">Query:</Label>
                 <Input type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
