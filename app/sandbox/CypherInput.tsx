@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Combobox } from '../components/combobox';
+import { DataTable } from '../components/tabale/DataTable';
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -35,10 +36,16 @@ function isValidCypher(query: string) {
     return true;
 }
 
+interface GraphResult {
+data: any[],
+metadata: any
+}
+
+
 // A component that renders an input box for Cypher queries
 export function CypherInput(props: { graphs: string[], onSubmit: (graph: string, query: string) => Promise<any> }) {
 
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<GraphResult|null>(null);
 
     // A state variable that stores the user input
     const [query, setQuery] = useState('');
@@ -73,12 +80,21 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
 
         // If the query is valid, pass it to the parent component as a prop
         if (valid) {
-            let newResults = await props.onSubmit(selectedValue?? "falkordb", query);
-            setResults(newResults.data?? [])
+            let newResults: GraphResult = await props.onSubmit(selectedValue?? "falkordb", query);
+            setResults(newResults)
         }
     }
 
-    // Return the JSX element that renders the input box and a submit button
+
+    let columns: string[] = []
+    let data = []
+    if (results?.data?.length){
+        if (results.data[0] instanceof Object) {
+            columns = Object.keys(results.data[0])
+        }
+        data = results.data
+    }
+
     return (
         <>
             <Combobox type={"Graph"} options={graphs} addOption={addGraph} selectedValue={selectedValue} setSelectedValue={setSelectedValue}/>
@@ -89,12 +105,7 @@ export function CypherInput(props: { graphs: string[], onSubmit: (graph: string,
             </form>
             {/* Show an error message if the query is invalid */}
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
-            <ul>
-                {/* Render the lines as list items */}
-                {results.map((line, index) => (
-                    <li key={index}>{JSON.stringify(line)}</li>
-                ))}
-            </ul>
+            {data.length>0 && <DataTable rows={data} columnNames={columns}/>}
         </>
     );
 }
