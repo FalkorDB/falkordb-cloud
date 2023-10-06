@@ -8,6 +8,7 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
 
     let sandbox = props.sandbox
     let redisURL = `redis://${sandbox.password}@${sandbox.host}:${sandbox.port}`
+    let redisURLMasked = `redis://********@${sandbox.host}:${sandbox.port}`
     return (
         <>
             <Dialog>
@@ -27,8 +28,8 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
             </Dialog>
             <DatabaseLine label="Host" value={sandbox.host} />
             <DatabaseLine label="Port" value={sandbox.port.toString()} />
-            <DatabaseLine label="Password" value={sandbox.password} />
-            <DatabaseLine label="Redis URL" value={redisURL} />
+            <DatabaseLine label="Password" value={sandbox.password} masked="********"/>
+            <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked}/>
         </>
     );
 }
