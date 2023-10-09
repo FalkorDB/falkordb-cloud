@@ -62,7 +62,7 @@ export function DataTable(props: { rows: any[], columnNames: string[]}) {
   })
 
   return (
-    <div className="w-full">
+    <>
       <div className="flex items-center py-4">
         <Input
           placeholder={`Filter ${props.columnNames[0]}...`}
@@ -173,6 +173,6 @@ export function DataTable(props: { rows: any[], columnNames: string[]}) {
           </Button>
         </div>
       </div>
-    </div>
+    </>
   )
 }

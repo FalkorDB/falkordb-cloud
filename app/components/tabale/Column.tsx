@@ -70,7 +70,6 @@ export function columnsDef(columns: string[]): ColumnDef<any>[] {
         <SortColumn column={column} />
       ),
       accessorFn: (row) => {
-        console.log(row)
         return JSON.stringify(row[columnName])
       },
     })
