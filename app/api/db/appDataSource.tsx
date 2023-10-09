@@ -1,4 +1,4 @@
-import { DataSource, EntitySchema } from "typeorm";
+import { DataSource } from "typeorm";
 import dataSourceOptions from "./options";
 import { AccountEntity, SessionEntity, UserEntity, VerificationTokenEntity} from "../models/entities";
 

@@ -6,7 +6,7 @@ import { Adapter } from "next-auth/adapters";
 import dataSourceOptions from "@/app/api/db/options";
 import * as entities from "@/app/api/models/entities";
 
-const authOptions = {
+const authOptions : AuthOptions = {
     adapter: TypeORMAdapter(dataSourceOptions, {entities}) as Adapter,
     providers: [
         GithubProvider({
