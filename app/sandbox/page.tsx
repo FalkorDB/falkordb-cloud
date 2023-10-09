@@ -107,7 +107,7 @@ export default function Page() {
             <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </div>
           <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
-            <CypherInput graphs={["falkordb", "graph2"]} onSubmit={sendQuery} />
+            <CypherInput onSubmit={sendQuery} />
           </div>
         </main>
       </div>
