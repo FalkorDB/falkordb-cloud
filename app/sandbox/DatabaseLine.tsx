@@ -8,7 +8,7 @@ export function DatabaseLine(props: { label: string, value: string, masked?: str
     const [showPassword, setShowPassword] = useState(false);
 
     function copyToClipboard(event: any) {
-        navigator.clipboard.writeText(event.target.innerText)
+        navigator.clipboard.writeText(event.target.getAttribute("aria-label"))
         toast({
             title: "Copied to clipboard",
             description: "The value has been copied to your clipboard.",
@@ -20,7 +20,7 @@ export function DatabaseLine(props: { label: string, value: string, masked?: str
     }
 
     return (
-        <div>{props.label}: <Button className="bg-transparent text-blue-600 p-2 hover:text-slate-50" onClick={copyToClipboard}>
+        <div>{props.label}: <Button className="bg-transparent text-blue-600 p-2 hover:text-slate-50" onClick={copyToClipboard} aria-label={props.value.toString()}>
             {(showPassword || !props.masked) ? props.value : props.masked}&ensp;
             <svg
                 className=" h-4 w-4"
