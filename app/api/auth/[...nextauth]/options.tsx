@@ -21,4 +21,4 @@ const authOptions : AuthOptions = {
 }
 
 
-export default authOptions;
+export default authOptions
