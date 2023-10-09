@@ -1,10 +1,26 @@
 import type { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github"
-import { TypeORMAdapter } from "@auth/typeorm-adapter"
+import { TypeORMAdapter, getManager } from '@auth/typeorm-adapter'
 import { Adapter } from "next-auth/adapters";
-import dataSourceOptions from "@/app/api/db/options";
 import * as entities from "@/app/api/models/entities";
+
+import { DataSourceOptions } from "typeorm"
+
+const env = process.env.NODE_ENV;
+const dataSourceOptions: DataSourceOptions = {
+    type: "postgres",
+    host: (process.env.POSTGRES_HOST || "localhost") as string,
+    port: Number(process.env.POSTGRES_PORT || 5432),
+    username: process.env.POSTGRES_USER as string,
+    password: process.env.POSTGRES_PASSWORD as string,
+    database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
+    synchronize: (env == "development" ? true : false),
+    ssl: (env == "development" ? undefined : {
+        rejectUnauthorized: false,
+        requestCert: true,
+    }),
+}
 
 const authOptions : AuthOptions = {
     adapter: TypeORMAdapter(dataSourceOptions, {entities}) as Adapter,
@@ -20,5 +36,9 @@ const authOptions : AuthOptions = {
     ],
 }
 
+
+export async function getEntityManager() {
+    return await getManager({ dataSource: dataSourceOptions, entities: entities} )
+}
 
 export default authOptions

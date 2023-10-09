@@ -1,14 +1,11 @@
 import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, ECSServiceException, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 
-import authOptions from '@/app/api/auth/[...nextauth]/options';
+import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
 import { NextResponse } from "next/server";
 import { generatePassword } from "./password";
-import { getManager } from "@auth/typeorm-adapter"
-import * as entities from "@/app/api/models/entities";
-import dataSourceOptions from "./options";
 
 const SUBNETS = process.env.SUBNETS?.split(":");
 const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
@@ -107,7 +104,7 @@ export async function POST() {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    let manager = await getManager({ dataSource: dataSourceOptions, entities: entities} )
+    let manager = await getEntityManager()
     return manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
         const user = await transactionalEntityManager.findOneBy(UserEntity, {
@@ -162,7 +159,7 @@ export async function DELETE() {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
     }
 
-    let manager = await getManager({ dataSource: dataSourceOptions, entities: entities} )
+    let manager = await getEntityManager()
     return await manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
         let user = await transactionalEntityManager.findOneBy(UserEntity, {
@@ -208,7 +205,7 @@ export async function GET() {
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
     }
 
-    let manager = await getManager({ dataSource: dataSourceOptions, entities: entities} )
+    let manager = await getEntityManager()
     return await manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
         const user = await transactionalEntityManager.findOneBy(UserEntity, {
