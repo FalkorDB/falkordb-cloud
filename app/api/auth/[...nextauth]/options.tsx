@@ -1,9 +1,9 @@
 import type { AuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google"
 import GithubProvider from "next-auth/providers/github"
 import { TypeORMAdapter, getManager } from '@auth/typeorm-adapter'
-import { Adapter } from "next-auth/adapters";
-import * as entities from "@/app/api/models/entities";
+import { Adapter } from "next-auth/adapters"
+import * as entities from "@/app/api/models/entities"
 
 import { DataSourceOptions } from "typeorm"
 
