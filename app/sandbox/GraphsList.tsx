@@ -69,7 +69,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
     }
 
     let samples_list = examples.map((sample) => {
-        return <Button className="rounded-full bg-blue-600 p-2 text-slate-50 m-2" onClick={ev => addSampleDatabase(sample)}>{sample}</Button>
+        return <Button className="rounded-full bg-blue-600 p-2 text-slate-50 m-2" key={sample} onClick={ev => addSampleDatabase(sample)}>{sample}</Button>
     })
 
     return (
