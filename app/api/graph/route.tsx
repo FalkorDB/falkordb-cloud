@@ -1,9 +1,8 @@
-import authOptions from '@/app/api/auth/[...nextauth]/options';
+import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { NextRequest, NextResponse } from "next/server";
-import dataSource from '../db/appDataSource';
 import { UserEntity } from '../models/entities';
-import { createClient, Graph } from 'redis';
+import { createClient } from 'redis';
 
 export async function GET() {
 
@@ -18,7 +17,8 @@ export async function GET() {
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
     }
 
-    const user = await dataSource.manager.findOneBy(UserEntity, {
+    let manager = await getEntityManager()
+    const user = await manager.findOneBy(UserEntity, {
         email: email
     })
 
