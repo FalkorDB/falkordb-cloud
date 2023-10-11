@@ -2,6 +2,7 @@ import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Combobox } from '../components/combobox';
 import { useToast } from "@/components/ui/use-toast"
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 
 // A component that renders an input box for Cypher queries
@@ -29,8 +30,8 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
                 })
                 return { result: [] }
             }).then((result) => {
-                setGraphs(result.result.graphs?? [])
-                setExamples(result.result.examples?? [])
+                setGraphs(result.result.graphs ?? [])
+                setExamples(result.result.examples ?? [])
             })
     }, [toast])
 
@@ -52,30 +53,37 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
             },
             body: JSON.stringify({ name: sample })
         })
-            .then((result) => {
-                if (result.status < 300) {
-                    return result.json()
-                }
-                toast({
-                    title: "Error",
-                    description: result.text(),
-                })
-                return { result: [] }
-            }).then((result) => {
-                graphs.push(sample)
-                setGraphs(graphs)
-                setSelectedGraph(sample)
+        .then((result) => {
+            if (result.status < 300) {
+                return result.json()
+            }
+            toast({
+                title: "Error",
+                description: result.text(),
             })
+            return { result: [] }
+        }).then((result) => {
+            graphs.push(sample)
+            setGraphs(graphs)
+            setSelectedGraph(sample)
+        })
     }
 
     let samples_list = examples.map((sample) => {
-        return <Button className="rounded-full bg-blue-600 p-2 text-slate-50 m-2" key={sample} onClick={ev => addSampleDatabase(sample)}>{sample}</Button>
+        return (
+            <Button className="bg-blue-600 p-2 text-slate-50" key={sample} onClick={ev => addSampleDatabase(sample)}>{sample}</Button>
+        )
     })
 
     return (
-        <div className='flex-row'>
-            {samples_list}
+        <div className='flex flex-col space-y-2'>
+            { samples_list.length > 0 && 
+                <div className='flex flex-wrap space-x-2'>
+                    <Label>Examples:</Label>
+                    {samples_list}
+                </div>
+            }
             <Combobox type={"Graph"} options={graphs} addOption={addOption} selectedValue={selectedGraph} setSelectedValue={setSelectedValue} />
         </div>
-    );
+    )
 }
