@@ -20,6 +20,12 @@ fs.readdir(`${process.cwd()}/app/examples`).then((files) => {
     })
 })
 
+console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + process.cwd())
+fs.readdir(process.cwd()).then((files) => {
+    console.log("process.cwd() " + process.cwd())
+    console.log(files)
+})
+
 export async function GET() {
 
     const session = await getServerSession(authOptions)
