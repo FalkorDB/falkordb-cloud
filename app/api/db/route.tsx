@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, ECSServiceException, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';

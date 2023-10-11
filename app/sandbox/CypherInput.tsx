@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DataTable } from '../components/tabale/DataTable';
-import { DirectedGraph, GraphData, GraphLink } from '../components/DirectedGraph';
+import { Category, DirectedGraph, GraphData, GraphLink } from '../components/DirectedGraph';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
 
@@ -98,15 +98,34 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         data = results.data
     }
 
-    const nodes: GraphData[] = []
-    const edges: GraphLink[] = []
+    let nodesMap = new Map<number, GraphData>();
+    let categoriesMap = new Map<String, Category>();
+    let nodes: GraphData[] = []
+    let edges: GraphLink[] = []
+    let categories: Category[] = []
+
     data.forEach((row: any[]) => {
         Object.values(row).forEach((cell: any) => {
             if (cell instanceof Object) {
                 if (cell.relationshipType) {
                     edges.push({ source: cell.sourceId.toString(), target: cell.destinationId.toString() })
                 } else if (cell.labels) {
-                    nodes.push({ name: cell.id.toString(), value: cell.labels[0] })
+
+                    // check if category already exists in categories
+                    let category = categoriesMap.get(cell.labels[0])
+                    if (!category) {
+                        category = { name: cell.labels[0], index: categories.length }
+                        categoriesMap.set(category.name, category)
+                        categories.push(category)
+                    }
+
+                    // check if node already exists in nodes
+                    let node = nodesMap.get(cell.id)
+                    if (!node) {
+                        node = { id: cell.id.toString(), name: cell.id.toString(), value: category.name, category: category.index }
+                        nodesMap.set(cell.id, node)
+                        nodes.push(node)
+                    }
                 }
             }
         })
@@ -129,7 +148,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
                         <TabsTrigger value="graph">Graph</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table"><DataTable rows={data} columnNames={columns} /></TabsContent>
-                    <TabsContent value="graph"><DirectedGraph data={nodes} links={edges} /></TabsContent>
+                    <TabsContent value="graph"><DirectedGraph data={nodes} links={edges} categories={categories} /></TabsContent>
                 </Tabs>
             )}
         </>
