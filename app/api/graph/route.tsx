@@ -9,23 +9,17 @@ import path from 'path';
 // Load example files
 let exampleFiles = new Map<string, Buffer>()
 let exampleFileNames: string[] = []
-fs.readdir(`${process.cwd()}/app/examples`).then((files) => {
+const p = path.resolve( process.cwd(), 'app/examples')
+fs.readdir(p).then((files) => {
     files.forEach(file => {        
-        fs.readFile(`${process.cwd()}/app/examples/${file}`, { encoding: 'hex' })
+        fs.readFile(`${p}/${file}`, { encoding: 'hex' })
             .then((data) => {
                 const buffer = Buffer.from(data, 'hex')
-                let fileName = file.split('.')[0]
+                const fileName = file.split('.')[0]
                 exampleFiles.set(fileName, buffer)
                 exampleFileNames.push(fileName)
             })
     })
-})
-
-let p = path.resolve( process.cwd(), 'app/examples')
-console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + p)
-fs.readdir(p).then((files) => {
-    console.log("process.cwd() " + p)
-    console.log(files)
 })
 
 export async function GET() {
