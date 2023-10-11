@@ -7,6 +7,7 @@ import { UserEntity } from "../models/entities";
 import { NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import fs from 'fs/promises';
+import path from "path";
 
 
 const SUBNETS = process.env.SUBNETS?.split(":");
@@ -14,9 +15,10 @@ const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
 const ecsClient = new ECSClient({ region: process.env.REGION });
 const ec2Client = new EC2Client({ region: process.env.REGION });
 
-console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + process.cwd())
-fs.readdir(process.cwd()).then((files) => {
-    console.log("process.cwd() " + process.cwd())
+let p = path.resolve( process.cwd(), 'app/examples')
+console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + p)
+fs.readdir(p).then((files) => {
+    console.log("process.cwd() " + p)
     console.log(files)
 })
 

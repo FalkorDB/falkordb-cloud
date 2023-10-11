@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { UserEntity } from '../models/entities';
 import { createClient } from 'redis';
 import fs from 'fs/promises';
+import path from 'path';
 
 // Load example files
 let exampleFiles = new Map<string, Buffer>()
@@ -20,9 +21,10 @@ fs.readdir(`${process.cwd()}/app/examples`).then((files) => {
     })
 })
 
-console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + process.cwd())
-fs.readdir(process.cwd()).then((files) => {
-    console.log("process.cwd() " + process.cwd())
+let p = path.resolve( process.cwd(), 'app/examples')
+console.log("XXXXXXXXXXXXXXXXXXXX process.cwd() " + p)
+fs.readdir(p).then((files) => {
+    console.log("process.cwd() " + p)
     console.log(files)
 })
 
