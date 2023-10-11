@@ -5,6 +5,21 @@ import { UserEntity } from '../models/entities';
 import { createClient } from 'redis';
 import fs from 'fs/promises';
 
+// Load example files
+let exampleFiles = new Map<string, Buffer>()
+let exampleFileNames: string[] = []
+fs.readdir(`${process.cwd()}/app/examples`).then((files) => {
+    files.forEach(file => {        
+        fs.readFile(`${process.cwd()}/app/examples/${file}`, { encoding: 'hex' })
+            .then((data) => {
+                const buffer = Buffer.from(data, 'hex')
+                let fileName = file.split('.')[0]
+                exampleFiles.set(fileName, buffer)
+                exampleFileNames.push(fileName)
+            })
+    })
+})
+
 export async function GET() {
 
     const session = await getServerSession(authOptions)
@@ -30,8 +45,7 @@ export async function GET() {
 
     try {
         let result = await client.graph.list()
-        let files = (await fs.readdir('public/examples')).map(f => f.split('.')[0]);
-        return NextResponse.json({ result: { graphs: result, examples: files } }, { status: 200 })
+        return NextResponse.json({ result: { graphs: result, examples: exampleFileNames } }, { status: 200 })
     } catch (err: any) {
         return NextResponse.json({ message: err.message }, { status: 400 })
     }
@@ -62,15 +76,14 @@ export async function POST(req: NextRequest) {
     const name = body.name
 
     try {
-
-        const data = await fs.readFile(`public/examples/${name}.dump`, { encoding: 'hex' });
-        const buffer = Buffer.from(data, 'hex');
+        const buffer = exampleFiles.get(name);
+        if (!buffer) {
+            return NextResponse.json({ message: "Example not found" }, { status: 404 })
+        }
         await client.restore(name, 0, buffer, { REPLACE: true });
         return NextResponse.json({ result: name }, { status: 200 })
 
     } catch (err) {
-        return NextResponse.json({ message: err }, { status: 400 })
-    }
-
-    
+        return NextResponse.json({ message: err }, { status: 500 })
+    }    
 }
