@@ -30,7 +30,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
                 return { result: [] }
             }).then((result) => {
                 setGraphs(result.result.graphs)
-                setExamples(result.result.examples)
+                setExamples(result.result.examples?? [])
             })
     }, [toast])
 
