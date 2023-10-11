@@ -46,6 +46,16 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
     }
 
     function addSampleDatabase(sample: string) {
+
+        if (graphs.includes(sample)) {
+            setSelectedValue(sample)
+            toast({
+                title: "Error",
+                description: `Graph ${sample} already exists`
+            })
+            return
+        }
+
         fetch('/api/graph', {
             method: 'POST',
             headers: {
