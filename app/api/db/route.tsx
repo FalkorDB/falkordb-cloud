@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, RunTaskCommand, StopTaskCommand, ECSServiceException, waitUntilTasksRunning } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
@@ -22,12 +22,78 @@ function cancelTask(taskArn: string): Promise<any> {
     return ecsClient.send(new StopTaskCommand(params));
 }
 
-/// Start an ECS service using a predefined task in an existing cluster.
-/// Use FARGATE_SPOT capacity provider.
-function getTaskCommand(password: string): RunTaskCommand {
+function deleteService(taskArn: string): Promise<any> {
     let params = {
         cluster: "falkordb",
-        taskDefinition: "falkordb",
+        service: taskArn,
+        force: true,
+    }
+    return ecsClient.send(new DeleteServiceCommand(params));
+}
+
+function createTaskDefinition(name: string, password: string): RegisterTaskDefinitionCommand {
+    let params = {
+        "family": name,
+        "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
+        "networkMode": "awsvpc",
+        "containerDefinitions": [
+            {
+                "name": "falkordb",
+                "image": "falkordb/falkordb:4.0.0-alpha.1",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "name": "falkordb-6379-tcp",
+                        "containerPort": 6379,
+                        "hostPort": 6379,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        name: "REDIS_ARGS",
+                        value: `--requirepass ${password}`,
+                    },
+                ],
+                "environmentFiles": [],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "ulimits": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-create-group": "true",
+                        "awslogs-group": "/ecs/falkordb",
+                        "awslogs-region": "eu-north-1",
+                        "awslogs-stream-prefix": "ecs"
+                    },
+                    "secretOptions": []
+                }
+            }
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "256",
+        "memory": "512",
+        "runtimePlatform": {
+            "cpuArchitecture": "X86_64",
+            "operatingSystemFamily": "LINUX"
+        }
+    };
+
+    return new RegisterTaskDefinitionCommand(params);
+}
+
+/// Start an ECS service using a predefined task in an existing cluster.
+/// Use FARGATE_SPOT capacity provider.
+function createService(user: string, taskDefinition: string): CreateServiceCommand {
+    let params = {
+        cluster: "falkordb",
+        serviceName: `falkordb-${user}`,
+        taskDefinition: taskDefinition,
+        desiredCount: 1,
         capacityProviderStrategy: [
             {
                 capacityProvider: "FARGATE_SPOT",
@@ -43,30 +109,31 @@ function getTaskCommand(password: string): RunTaskCommand {
                 securityGroups: SECURITY_GROUPS
             },
         },
-        overrides: {
-            containerOverrides: [
-                {
-                    name: "falkordb",
-                    environment: [
-                        {
-                            name: "REDIS_ARGS",
-                            value: `--requirepass ${password}`,
-                        },
-                    ],
-                },
-            ],
-        },
     }
-    return new RunTaskCommand(params)
+    return new CreateServiceCommand(params)
 }
 
-async function waitForTask(user: UserEntity, taskArn: string) {
+async function waitForService(user: UserEntity, taskArn: string) {
     try {
-        let waitECSTask = await waitUntilTasksRunning(
+        let waitECSTask = await waitUntilServicesStable(
             { client: ecsClient, maxWaitTime: 5, minDelay: 1 },
-            { cluster: "falkordb", tasks: [taskArn] }
+            { cluster: "falkordb", services: [taskArn] }
         )
         if (waitECSTask.state != 'SUCCESS') {
+            return "";
+        }
+
+        const tasks = await ecsClient.send(new ListTasksCommand({
+            cluster: "falkordb",
+            serviceName: `falkordb-${user.id}`,
+        }))
+        const task = await ecsClient.send(new DescribeTasksCommand({
+            cluster: "falkordb",
+            tasks: tasks.taskArns ?? [],
+        }))
+
+        const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
+        if (!privateIp) {
             return "";
         }
 
@@ -74,7 +141,7 @@ async function waitForTask(user: UserEntity, taskArn: string) {
             Filters: [
                 {
                     Name: "private-ip-address",
-                    Values: [waitECSTask.reason?.tasks[0].containers[0].networkInterfaces[0].privateIpv4Address],
+                    Values: [privateIp],
                 },
             ],
         });
@@ -122,13 +189,13 @@ export async function POST() {
 
         const password = generatePassword(32);
 
+        let task = createTaskDefinition(`falkordb-${user.id}`, password)
+        const taskData = await ecsClient.send(task);
+
         // Start an ECS service using a predefined task in an existing cluster.
-        let ecsTask = getTaskCommand(password)
+        let ecsTask = createService(user.id, `falkordb-${user.id}`)
         const data = await ecsClient.send(ecsTask);
-        if (data.failures?.length) {
-            return NextResponse.json({ message: "Task run failed" }, { status: 500 })
-        }
-        let taskArn: string | undefined = data.tasks?.[0].taskArn
+        let taskArn: string | undefined = data.service?.serviceArn
         if (typeof taskArn !== "string") {
             console.warn("Task ARN is not defined " + taskArn);
             return NextResponse.json({ message: "Task run failed" }, { status: 500 })
@@ -176,7 +243,13 @@ export async function DELETE() {
         }
 
         try {
-            await cancelTask(user.task_arn);
+            const tasks = await ecsClient.send(new ListTasksCommand({
+                cluster: "falkordb",
+                serviceName: `falkordb-${user.id}`,
+            }))
+            await deleteService(user.task_arn);
+            const taskArns = tasks.taskArns ?? [];
+            await Promise.all(taskArns.map(task => cancelTask(task)));
         } catch (err) {
             // If the task is already stopped, the StopTask action returns an error.
             if (!(err instanceof InvalidParameterException)) {
@@ -218,29 +291,27 @@ export async function GET() {
             return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
         }
 
-        if (user.db_host == "") {
-            try {
-                // Check if task is running
-                user.db_host = await waitForTask(user, user.task_arn)
-                if (user.db_host == "") {
-                    return NextResponse.json({
-                        host: user.db_host,
-                        port: user.db_port,
-                        password: user.db_password,
-                        create_time: user.db_create_time,
-                        status: "BUILDING",
-                    }, { status: 200 })
-                }
-                await transactionalEntityManager.save(user)
-            } catch (err) {
-                // Fatal error in the task 
-                // TODO consider retry on network issues
-                // await cancelTask(taskArn);
-                console.error(err);
-                user.task_arn = null;
-                await transactionalEntityManager.save(user)                    
-                return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+        try {
+            // Check if task is running
+            user.db_host = await waitForService(user, user.task_arn)
+            if (user.db_host == "") {
+                return NextResponse.json({
+                    host: user.db_host,
+                    port: user.db_port,
+                    password: user.db_password,
+                    create_time: user.db_create_time,
+                    status: "BUILDING",
+                }, { status: 200 })
             }
+            await transactionalEntityManager.save(user)
+        } catch (err) {
+            // Fatal error in the task 
+            // TODO consider retry on network issues
+            // await cancelTask(taskArn);
+            console.error(err);
+            user.task_arn = null;
+            await transactionalEntityManager.save(user)
+            return NextResponse.json({ message: "Task run failed" }, { status: 500 })
         }
 
         return NextResponse.json({
