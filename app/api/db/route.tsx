@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
@@ -29,6 +29,18 @@ function deleteService(taskArn: string): Promise<any> {
         force: true,
     }
     return ecsClient.send(new DeleteServiceCommand(params));
+}
+
+async function deleteTaskDefinition(taskArn: string) {
+    const res = await ecsClient.send(new DescribeTaskDefinitionCommand({
+        taskDefinition: taskArn,
+    }));
+    const res1 = await ecsClient.send(new DeregisterTaskDefinitionCommand({
+        taskDefinition: `${taskArn}:${res.taskDefinition?.revision}`,
+    }));
+    const res2 = await ecsClient.send(new DeleteTaskDefinitionsCommand({
+        taskDefinitions: [`${taskArn}:${res.taskDefinition?.revision}`],
+    }));
 }
 
 function createTaskDefinition(name: string, password: string): RegisterTaskDefinitionCommand {
@@ -250,6 +262,7 @@ export async function DELETE() {
             await deleteService(user.task_arn);
             const taskArns = tasks.taskArns ?? [];
             await Promise.all(taskArns.map(task => cancelTask(task)));
+            await deleteTaskDefinition(`falkordb-${user.id}`);
         } catch (err) {
             // If the task is already stopped, the StopTask action returns an error.
             if (!(err instanceof InvalidParameterException)) {
