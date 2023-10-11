@@ -59,16 +59,18 @@ export async function POST(req: NextRequest) {
     }).connect();
 
     let body = await req.json()
-    let name = body.name
-    console.log(name)
+    const name = body.name
 
     try {
+
         const data = await fs.readFile(`public/examples/${name}.dump`, { encoding: 'hex' });
         const buffer = Buffer.from(data, 'hex');
         await client.restore(name, 0, buffer, { REPLACE: true });
+        return NextResponse.json({ result: name }, { status: 200 })
+
     } catch (err) {
         return NextResponse.json({ message: err }, { status: 400 })
     }
 
-    return NextResponse.json({ result: name }, { status: 200 })
+    
 }
