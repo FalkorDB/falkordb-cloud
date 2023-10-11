@@ -39,8 +39,8 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
                 </Link>
               </li>
               <li>
-                <Link href="/contacts">
-                  <p>Contacts</p>
+                <Link href="/support">
+                  <p>Support</p>
                 </Link>
               </li>
               <li>

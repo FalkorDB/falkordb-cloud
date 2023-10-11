@@ -38,7 +38,7 @@ const Sidebar = ({
             <Link href="/pricing" onClick={toggle}><p>Pricing</p></Link>
           </li>
           <li>
-            <Link href="/contacts" onClick={toggle}><p>Contacts</p></Link>
+            <Link href="/support" onClick={toggle}><p>Support</p></Link>
           </li>
           <li>
             <Link href="https://docs.falkordb.com/"><p>Documentation</p></Link>
