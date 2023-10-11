@@ -75,7 +75,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
         }).then((result) => {
             graphs.push(sample)
             setGraphs(graphs)
-            setSelectedGraph(sample)
+            setSelectedValue(sample)
         })
     }
 
