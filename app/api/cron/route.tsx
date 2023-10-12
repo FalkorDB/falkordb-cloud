@@ -11,6 +11,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   } 
 
+
+  // TODO add clean inactive sandboxes for more than 24h
+
   // A GET request to the Heartbeat
   fetch(url).then(response => console.log(response)) 
 

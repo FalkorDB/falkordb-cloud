@@ -9,7 +9,7 @@ export interface Category {
 export interface GraphData {
   id: string,
   name: string,
-  value: string
+  value: string,
   category: number
 }
 
@@ -23,7 +23,9 @@ export function DirectedGraph(props: { data: GraphData[], links: GraphLink[], ca
   // Define the options for the echarts component
   function getOption(): EChartsOption {
     return {
-      tooltip: {},
+      tooltip: {
+        position: 'right',
+      },
       legend: [
         {
           data: props.categories.map(function (c) {

@@ -122,7 +122,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
                     // check if node already exists in nodes
                     let node = nodesMap.get(cell.id)
                     if (!node) {
-                        node = { id: cell.id.toString(), name: cell.id.toString(), value: category.name, category: category.index }
+                        node = { id: cell.id.toString(), name: cell.id.toString(), value: JSON.stringify(cell), category: category.index }
                         nodesMap.set(cell.id, node)
                         nodes.push(node)
                     }
