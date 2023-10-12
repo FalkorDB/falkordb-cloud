@@ -86,14 +86,14 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
     })
 
     return (
-        <div className='flex flex-col space-y-2'>
+        <>
             { samples_list.length > 0 && 
                 <div className='flex flex-wrap space-x-2'>
-                    <Label>Examples:</Label>
+                    <Label className='align-middle'>Examples:</Label>
                     {samples_list}
                 </div>
             }
             <Combobox type={"Graph"} options={graphs} addOption={addOption} selectedValue={selectedGraph} setSelectedValue={setSelectedValue} />
-        </div>
+        </>
     )
 }

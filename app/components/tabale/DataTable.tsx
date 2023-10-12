@@ -63,7 +63,7 @@ export function DataTable(props: { rows: any[], columnNames: string[]}) {
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-2">
         <Input
           placeholder={`Filter ${props.columnNames[0]}...`}
           value={(table.getColumn(props.columnNames[0])?.getFilterValue() as string) ?? ""}

@@ -43,7 +43,19 @@ export function DirectedGraph(props: { data: GraphData[], links: GraphLink[], ca
           data: props.data,
           links: props.links,
           categories: props.categories,
+          emphasis: {
+            focus: 'adjacency',
+            label: {
+              position: 'right',
+              show: true
+            }
+          },
           roam: true,
+          lineStyle: {
+            width: 0.5,
+            curveness: 0.3,
+            opacity: 0.7
+          },
           dagreLayout: {
             rankdir: 'LR', // Left to right layout
             nodesepFunc: () => 1, // Node separation function
