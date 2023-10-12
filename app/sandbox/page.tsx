@@ -141,7 +141,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <Button className="rounded-full bg-blue-600 text-4xl p-8 text-slate-50" onClick={createSandbox}>Create Sandbox</Button>
+          <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={createSandbox}>Create Sandbox</Button>
         </main>
       </div>
     )
