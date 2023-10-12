@@ -26,10 +26,12 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     <Button className="rounded-full bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
                 </DialogContent>
             </Dialog>
-            <DatabaseLine label="Host" value={sandbox.host} />
-            <DatabaseLine label="Port" value={sandbox.port.toString()} />
-            <DatabaseLine label="Password" value={sandbox.password} masked="********"/>
-            <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked}/>
+            <div className="flex flex-wrap">
+                <DatabaseLine label="Host" value={sandbox.host} />
+                <DatabaseLine label="Port" value={sandbox.port.toString()} />
+                <DatabaseLine label="Password" value={sandbox.password} masked="********"/>
+                <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked}/>
+            </div>
         </>
     );
 }

@@ -101,12 +101,12 @@ export default function Page() {
   // render the sandbox details if exists
   if (sandbox) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-4">
-        <main className="flex flex-col flex-1 m-4">
-          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
+      <div className="flex flex-col items-center justify-center min-h-screen w-screen py-4">
+        <main className="flex flex-col flex-1 m-4 w-screen">
+          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </div>
-          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
+          <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <CypherInput onSubmit={sendQuery} />
           </div>
         </main>
