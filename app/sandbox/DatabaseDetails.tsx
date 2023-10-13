@@ -17,9 +17,7 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                 <DatabaseLine label="Password" value={sandbox.password} masked="********" />
                 <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked} />
                 <Dialog>
-                    <DialogTrigger>
-                        <Button className="bg-blue-600 p-2 text-slate-50">Delete Sandbox</Button>
-                    </DialogTrigger>
+                    <DialogTrigger className="bg-blue-600 p-2 text-slate-50">Delete Sandbox</DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Are you sure absolutely sure?</DialogTitle>

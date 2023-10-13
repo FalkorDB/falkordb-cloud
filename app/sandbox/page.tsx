@@ -100,6 +100,24 @@ export default function Page() {
     return []
   }
 
+  async function getNode(graph: string, id: number) {
+    let result = await fetch(`/api/graph/${graph}/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (result.status < 300) {
+      let res = await result.json()
+      return res.result
+    }
+    toast({
+      title: "Error",
+      description: await result.text(),
+    })
+    return []
+  }
+
   // render the sandbox details if exists
   if (sandbox) {
     return (
@@ -107,30 +125,24 @@ export default function Page() {
         <main className="flex flex-col flex-1 m-4 w-screen">
 
           <Collapsible>
-            <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-              <CollapsibleTrigger>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
-                  <ChevronsUpDown className="h-4 w-4" />
-                  <span className="sr-only">Toggle</span>
-                </Button>
-                Connection Details
+            <div className="p-2 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+              <CollapsibleTrigger className="flex flex-row">
+                  <ChevronsUpDown />
+                  <div className="mx-4">Connection Details</div>
               </CollapsibleTrigger>
-              <CollapsibleContent>
+              <CollapsibleContent className="p-2">
                 <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
               </CollapsibleContent>
             </div>
           </Collapsible>
           <Collapsible>
-            <div className="p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-              <CollapsibleTrigger>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
-                  <ChevronsUpDown className="h-4 w-4" />
-                  <span className="sr-only">Toggle</span>
-                </Button>
-                Query Pane
+            <div className="p-2 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+              <CollapsibleTrigger className="flex flex-row">
+                  <ChevronsUpDown />
+                  <div className="mx-4">Query Pane</div>
               </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CypherInput onSubmit={sendQuery} />
+              <CollapsibleContent className="p-2">
+                <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
               </CollapsibleContent>
             </div>
           </Collapsible>
