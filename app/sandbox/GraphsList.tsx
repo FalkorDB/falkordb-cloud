@@ -63,20 +63,20 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
             },
             body: JSON.stringify({ name: sample })
         })
-        .then((result) => {
-            if (result.status < 300) {
-                return result.json()
-            }
-            toast({
-                title: "Error",
-                description: result.text(),
+            .then((result) => {
+                if (result.status < 300) {
+                    return result.json()
+                }
+                toast({
+                    title: "Error",
+                    description: result.text(),
+                })
+                return { result: [] }
+            }).then((result) => {
+                graphs.push(sample)
+                setGraphs(graphs)
+                setSelectedValue(sample)
             })
-            return { result: [] }
-        }).then((result) => {
-            graphs.push(sample)
-            setGraphs(graphs)
-            setSelectedValue(sample)
-        })
     }
 
     let samples_list = examples.map((sample) => {
@@ -87,9 +87,9 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
 
     return (
         <>
-            { samples_list.length > 0 && 
+            {samples_list.length > 0 &&
                 <div className='flex flex-wrap space-x-2'>
-                    <Label className='align-middle'>Examples:</Label>
+                    <div className="py-2">Examples:</div>
                     {samples_list}
                 </div>
             }
