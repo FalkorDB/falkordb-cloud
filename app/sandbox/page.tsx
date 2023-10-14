@@ -123,27 +123,21 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-screen py-4">
         <main className="flex flex-col flex-1 m-4 w-screen">
-          <Collapsible>
-            <div className="p-2 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-              <CollapsibleTrigger className="flex flex-row">
-                  <ChevronsUpDown />
-                  <div className="mx-4">Connection Details</div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="p-2">
-                <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
-              </CollapsibleContent>
-            </div>
+          <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+            <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+                <ChevronsUpDown /> Connection Details
+            </CollapsibleTrigger>
+            <CollapsibleContent className="p-2 bg-white rounded-lg">
+              <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
+            </CollapsibleContent>
           </Collapsible>
-          <Collapsible>
-            <div className="p-2 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-              <CollapsibleTrigger className="flex flex-row">
-                  <ChevronsUpDown />
-                  <div className="mx-4">Query Pane</div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="p-2">
-                <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
-              </CollapsibleContent>
-            </div>
+          <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+            <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+                <ChevronsUpDown /> Query Pane
+            </CollapsibleTrigger>
+            <CollapsibleContent className="p-2 bg-white rounded-lg">
+              <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
+            </CollapsibleContent>
           </Collapsible>
         </main>
       </div>

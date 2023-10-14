@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DataTable } from '../components/tabale/DataTable';
+import { DataTable } from '../components/table/DataTable';
 import { Category, DirectedGraph, GraphData, GraphLink } from '../components/DirectedGraph';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
