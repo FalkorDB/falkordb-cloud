@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+// Heartbeat URL
+const url = "https://ping.checklyhq.com/b8f8de24-3fde-438a-9f7c-b5b4f42fe459"
 
 export async function GET(request: Request) {
 
@@ -9,6 +11,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   } 
 
-  return NextResponse.json({ ok: true });
 
+  // TODO add clean inactive sandboxes for more than 24h
+
+  // A GET request to the Heartbeat
+  fetch(url).then(response => console.log(response)) 
+
+  return NextResponse.json({ ok: true });
 }

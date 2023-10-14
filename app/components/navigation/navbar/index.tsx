@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Logo from "./Logo";
 import AvatarButton from "./AvatarButton";
+import { Menu } from "lucide-react";
 
 const Navbar = ({ toggle }: { toggle: () => void }) => {
   return (
@@ -15,17 +16,7 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
               className="inline-flex items-center md:hidden"
               onClick={toggle}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="#fff"
-                  d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"
-                />
-              </svg>
+              <Menu className="text-white"/>
             </button>
             <ul className="hidden md:flex gap-x-6 text-slate-50">
               <li>

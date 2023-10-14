@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DataTable } from '../components/tabale/DataTable';
+import { DataTable } from '../components/table/DataTable';
 import { Category, DirectedGraph, GraphData, GraphLink } from '../components/DirectedGraph';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
@@ -43,9 +43,62 @@ interface GraphResult {
     metadata: any
 }
 
+interface ExtractedData {
+    data: any[][],
+    columns: string[],
+    categories: Category[],
+    nodes: GraphData[],
+    edges: GraphLink[]
+}
+    
+
+function extractData(results: GraphResult | null) : ExtractedData {
+    let columns: string[] = []
+    let data: any[][] = []
+    if (results?.data?.length) {
+        if (results.data[0] instanceof Object) {
+            columns = Object.keys(results.data[0])
+        }
+        data = results.data
+    }
+
+    let nodesMap = new Map<number, GraphData>();
+    let categoriesMap = new Map<String, Category>();
+    let nodes: GraphData[] = []
+    let edges: GraphLink[] = []
+    let categories: Category[] = []
+
+    data.forEach((row: any[]) => {
+        Object.values(row).forEach((cell: any) => {
+            if (cell instanceof Object) {
+                if (cell.relationshipType) {
+                    edges.push({ source: cell.sourceId.toString(), target: cell.destinationId.toString() })
+                } else if (cell.labels) {
+
+                    // check if category already exists in categories
+                    let category = categoriesMap.get(cell.labels[0])
+                    if (!category) {
+                        category = { name: cell.labels[0], index: categories.length }
+                        categoriesMap.set(category.name, category)
+                        categories.push(category)
+                    }
+
+                    // check if node already exists in nodes
+                    let node = nodesMap.get(cell.id)
+                    if (!node) {
+                        node = { id: cell.id.toString(), name: cell.id.toString(), value: JSON.stringify(cell), category: category.index }
+                        nodesMap.set(cell.id, node)
+                        nodes.push(node)
+                    }
+                }
+            }
+        })
+    })
+    return { data, columns, categories, nodes, edges}
+}
 
 // A component that renders an input box for Cypher queries
-export function CypherInput(props: { onSubmit: (graph: string, query: string) => Promise<any> }) {
+export function CypherInput(props: { onSubmit: (graph: string, query: string) => Promise<any>, onGraphClick: (graph: string, id: number) => Promise<any> }) {
 
     const [results, setResults] = useState<GraphResult | null>(null);
 
@@ -88,48 +141,15 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         }
     }
 
-
-    let columns: string[] = []
-    let data: any[][] = []
-    if (results?.data?.length) {
-        if (results.data[0] instanceof Object) {
-            columns = Object.keys(results.data[0])
-        }
-        data = results.data
+    // A function that handles the click event of the Graph
+    async function handleGraphClick(id: number) : Promise<[Category[], GraphData[], GraphLink[]]>{
+        
+        let results = await props.onGraphClick(selectedGraph, id)
+        let extracted = extractData(results)
+        return [extracted.categories, extracted.nodes, extracted.edges]
     }
 
-    let nodesMap = new Map<number, GraphData>();
-    let categoriesMap = new Map<String, Category>();
-    let nodes: GraphData[] = []
-    let edges: GraphLink[] = []
-    let categories: Category[] = []
-
-    data.forEach((row: any[]) => {
-        Object.values(row).forEach((cell: any) => {
-            if (cell instanceof Object) {
-                if (cell.relationshipType) {
-                    edges.push({ source: cell.sourceId.toString(), target: cell.destinationId.toString() })
-                } else if (cell.labels) {
-
-                    // check if category already exists in categories
-                    let category = categoriesMap.get(cell.labels[0])
-                    if (!category) {
-                        category = { name: cell.labels[0], index: categories.length }
-                        categoriesMap.set(category.name, category)
-                        categories.push(category)
-                    }
-
-                    // check if node already exists in nodes
-                    let node = nodesMap.get(cell.id)
-                    if (!node) {
-                        node = { id: cell.id.toString(), name: cell.id.toString(), value: category.name, category: category.index }
-                        nodesMap.set(cell.id, node)
-                        nodes.push(node)
-                    }
-                }
-            }
-        })
-    })
+    let extracted = extractData(results)
 
     return (
         <>
@@ -143,14 +163,14 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
             </div>
             {/* Show an error message if the query is invalid */}
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
-            {data.length > 0 && (
+            {extracted.data.length > 0 && (
                 <Tabs defaultValue="table" className="w-full py-2">
                     <TabsList>
                         <TabsTrigger value="table">Data</TabsTrigger>
                         <TabsTrigger value="graph">Graph</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="table"><DataTable rows={data} columnNames={columns} /></TabsContent>
-                    <TabsContent value="graph"><DirectedGraph data={nodes} links={edges} categories={categories} /></TabsContent>
+                    <TabsContent value="table"><DataTable rows={extracted.data} columnNames={extracted.columns} /></TabsContent>
+                    <TabsContent value="graph"><DirectedGraph nodes={extracted.nodes} edges={extracted.edges} categories={extracted.categories} onChartClick={handleGraphClick} /></TabsContent>
                 </Tabs>
             )}
         </>
