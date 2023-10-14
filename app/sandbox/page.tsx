@@ -2,14 +2,14 @@
 
 import { signIn } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { CypherInput } from "./CypherInput";
 import { DatabaseDetails } from "./DatabaseDetails";
 import { LoadingState, State } from "./LoadingState";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronsUpDown, Plus, X } from "lucide-react"
+import { ChevronsUpDown } from "lucide-react"
 
 export default function Page() {
   const [retry_count, retry] = useState(0)
@@ -123,7 +123,6 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-screen py-4">
         <main className="flex flex-col flex-1 m-4 w-screen">
-
           <Collapsible>
             <div className="p-2 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
               <CollapsibleTrigger className="flex flex-row">
