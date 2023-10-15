@@ -1,5 +1,6 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
+import WebSocket from 'ws';
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
@@ -8,6 +9,7 @@ import { NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import fs from 'fs/promises';
 import path from "path";
+import { v4 as uuidv4 } from 'uuid';
 
 const SUBNETS = process.env.SUBNETS?.split(":");
 const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
@@ -48,6 +50,7 @@ async function deleteTaskDefinition(taskArn: string) {
 function createTaskDefinition(name: string, password: string): RegisterTaskDefinitionCommand {
     let params = {
         "family": name,
+        "taskRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "networkMode": "awsvpc",
         "containerDefinitions": [
@@ -69,6 +72,10 @@ function createTaskDefinition(name: string, password: string): RegisterTaskDefin
                         name: "REDIS_ARGS",
                         value: `--requirepass ${password}`,
                     },
+                    {
+                        name: "TLS",
+                        value: "1",
+                    }
                 ],
                 "environmentFiles": [],
                 "mountPoints": [],
@@ -107,6 +114,7 @@ function createService(user: string, taskDefinition: string): CreateServiceComma
         cluster: "falkordb",
         serviceName: `falkordb-${user}`,
         taskDefinition: taskDefinition,
+        enableExecuteCommand: true,
         desiredCount: 1,
         capacityProviderStrategy: [
             {
@@ -146,6 +154,49 @@ async function waitForService(user: UserEntity, taskArn: string) {
             tasks: tasks.taskArns ?? [],
         }))
 
+        const res = await ecsClient.send(new ExecuteCommandCommand({
+            cluster: "falkordb",
+            command: "cat /FalkorDB/tls/ca.crt",
+            interactive: true,
+            task: task.tasks?.[0].taskArn
+        }));
+
+        const ws = new WebSocket(res.session?.streamUrl ?? "");
+
+        const cacert: string = await new Promise((resolve, reject) => {
+            let accdata = "";
+            ws.on('error', reject);
+
+            ws.on('open', function open() {
+                console.log('connected');
+                ws.send(JSON.stringify({
+                    "MessageSchemaVersion": "1.0",
+                    "RequestId": uuidv4(),
+                    "TokenValue": res.session?.tokenValue
+                }));
+            });
+
+            ws.on('message', function message(data) {
+                console.log('received: %s', data);
+                if (data instanceof Buffer) {
+                    let n = data.readInt32BE(0);
+                    data = data.slice(4 + n);
+                    console.log(n);
+                }
+                accdata += data.toString();
+            });
+
+            ws.on('close', function close() {
+                console.log('disconnected');
+                let sidx = accdata.indexOf("-----BEGIN CERTIFICATE-----");
+                let eidx = accdata.indexOf("-----END CERTIFICATE-----");
+                let cacert = accdata.substring(sidx, eidx + 25  );
+                resolve(cacert);
+            });
+        });
+
+        ws.terminate();
+
         const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
         if (!privateIp) {
             return "";
@@ -162,10 +213,12 @@ async function waitForService(user: UserEntity, taskArn: string) {
 
         // Get the public IP address of the ECS task
         let network = await ec2Client.send(command)
-        return network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        user.cacert = cacert;
+        user.db_host = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        return;
     } catch (err: any) {
         if (err.name === "TimeoutError") {
-            return "";
+            return;
         }
         throw err;
     }
@@ -308,13 +361,14 @@ export async function GET() {
 
         try {
             // Check if task is running
-            user.db_host = await waitForService(user, user.task_arn)
+            await waitForService(user, user.task_arn)
             if (user.db_host == "") {
                 return NextResponse.json({
                     host: user.db_host,
                     port: user.db_port,
                     password: user.db_password,
                     create_time: user.db_create_time,
+                    cacert: user.cacert,
                     status: "BUILDING",
                 }, { status: 200 })
             }
@@ -334,6 +388,7 @@ export async function GET() {
             port: user.db_port,
             password: user.db_password,
             create_time: user.db_create_time,
+            cacert: user.cacert,
             status: "READY",
         }, { status: 200 })
     })

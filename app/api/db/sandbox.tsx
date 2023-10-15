@@ -4,12 +4,14 @@ export class Sandbox {
     public port: number;
     public password: string;
     public create_time: string;
+    public cacert: string;
 
-    constructor(host: string, port: number, password: string, create_time: string) {
+    constructor(host: string, port: number, password: string, create_time: string, cacert: string) {
         this.host = host;
         this.port = port;
         this.password = password;
         this.create_time = create_time;
+        this.cacert = cacert;
     }
 }
 //# sourceMappingURL=sandbox.js.map

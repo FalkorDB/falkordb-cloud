@@ -41,7 +41,12 @@ export async function GET() {
     })
 
     const client = await createClient({
-        url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+        socket: {
+            tls: true,
+            rejectUnauthorized: false,
+            ca: user?.cacert ?? ""
+        }
     }).connect();
 
 
@@ -71,7 +76,12 @@ export async function POST(req: NextRequest) {
     })
 
     const client = await createClient({
-        url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+        socket: {
+            tls: true,
+            rejectUnauthorized: false,
+            ca: user?.cacert ?? ""
+        }
     }).connect();
 
     let body = await req.json()

@@ -23,7 +23,12 @@ export async function GET(request: NextRequest,  { params }: { params: { graph: 
     })
 
     const client = await createClient( {
-        url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+        socket: {
+            tls: true,
+            rejectUnauthorized: false,
+            ca: user?.cacert ?? ""
+        }
     }).connect();
 
     const graph = new Graph(client, params.graph);

@@ -47,9 +47,13 @@
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typeorm": "^0.3.17",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "uuid": "^9.0.1",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
-    "@types/node": "^20.8.4"
+    "@types/node": "^20.8.4",
+    "@types/uuid": "^9.0.5",
+    "@types/ws": "^8.5.7"
   }
 }
