@@ -9,7 +9,7 @@ export default function Page() {
       <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
         <div className="space-y-8 p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold">Contact Us</h2>
+            <h2 className="text-3xl font-bold">Support</h2>
             <p className="text-zinc-500 dark:text-zinc-400">Connect with us on your preferred platform</p>
           </div>
           <div className="flex flex-col items-start space-y-4">

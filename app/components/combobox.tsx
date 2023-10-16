@@ -58,7 +58,7 @@ export function Combobox( props: {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`${props.className} w-[200px] justify-between`}
+          className={`w-[200px] justify-between ${props.className} `}
         >
           {props.selectedValue
             ? props.options.find((option) => option === props.selectedValue)

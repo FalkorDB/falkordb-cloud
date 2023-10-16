@@ -3,15 +3,13 @@
 import { signIn } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { CypherInput } from "./CypherInput";
 import { DatabaseDetails } from "./DatabaseDetails";
 import { LoadingState, State } from "./LoadingState";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronsUpDown } from "lucide-react"
-import { Combobox } from "../components/combobox";
-import { AWS } from "../components/icons/aws";
+import { Create } from "./Create";
 
 export default function Page() {
   const [retry_count, retry] = useState(0)
@@ -56,13 +54,13 @@ export default function Page() {
   }
 
   // Create a sandbox on click
-  function createSandbox(event: any) {
-    event.currentTarget.disabled = true;
+  function createSandbox(region: string) {
     fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ region })
     }).then((res) => {
       setLoading(State.BuildingSandbox)
     }).catch(() => {
@@ -151,11 +149,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <main className="flex flex-row space-x-2 items-center justify-center flex-1 px-20 text-center">
-          <Combobox className="text-1xl p-8 shadow-lg rounded-lg  border border-gray-300"
-            type={"Zones"}
-            options={zones} 
-            selectedValue={selectedZone} setSelectedValue={() => { }} />
-          <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={createSandbox}>Create Sandbox</Button>
+          <Create onCreate={createSandbox} />
         </main>
       </div>
     )
