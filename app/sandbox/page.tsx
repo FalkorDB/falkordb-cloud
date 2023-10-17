@@ -3,13 +3,13 @@
 import { signIn } from "next-auth/react"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { CypherInput } from "./CypherInput";
 import { DatabaseDetails } from "./DatabaseDetails";
 import { LoadingState, State } from "./LoadingState";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronsUpDown } from "lucide-react"
+import { Create } from "./Create";
 
 export default function Page() {
   const [retry_count, retry] = useState(0)
@@ -54,13 +54,13 @@ export default function Page() {
   }
 
   // Create a sandbox on click
-  function createSandbox(event: any) {
-    event.currentTarget.disabled = true;
+  function createSandbox(region: string) {
     fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ region })
     }).then((res) => {
       setLoading(State.BuildingSandbox)
     }).catch(() => {
@@ -118,6 +118,9 @@ export default function Page() {
     return []
   }
 
+  const zones = ["eu-north-1"]
+  const selectedZone = zones[0]
+
   // render the sandbox details if exists
   if (sandbox) {
     return (
@@ -125,7 +128,7 @@ export default function Page() {
         <main className="flex flex-col flex-1 m-4 w-screen">
           <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
-                <ChevronsUpDown /> Connection Details
+              <ChevronsUpDown /> Connection Details
             </CollapsibleTrigger>
             <CollapsibleContent className="p-2 bg-white rounded-lg">
               <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
@@ -133,7 +136,7 @@ export default function Page() {
           </Collapsible>
           <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
-                <ChevronsUpDown /> Query Pane
+              <ChevronsUpDown /> Query Pane
             </CollapsibleTrigger>
             <CollapsibleContent className="p-2 bg-white rounded-lg">
               <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
@@ -145,8 +148,8 @@ export default function Page() {
   } else {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-          <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={createSandbox}>Create Sandbox</Button>
+        <main className="flex flex-row space-x-2 items-center justify-center flex-1 px-20 text-center">
+          <Create onCreate={createSandbox} />
         </main>
       </div>
     )

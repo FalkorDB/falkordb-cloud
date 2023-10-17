@@ -89,7 +89,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
         <>
             { samples_list.length > 0 && 
                 <div className='flex flex-wrap space-x-2'>
-                    <Label className='align-middle'>Examples:</Label>
+                    <div className="py-2">Examples:</div>
                     {samples_list}
                 </div>
             }

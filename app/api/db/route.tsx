@@ -4,48 +4,44 @@ import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";
-import fs from 'fs/promises';
-import path from "path";
+import { REGIONS, Region } from "./regions";
 
-const SUBNETS = process.env.SUBNETS?.split(":");
-const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
-const ecsClient = new ECSClient({ region: process.env.REGION });
-const ec2Client = new EC2Client({ region: process.env.REGION });
-
-function cancelTask(taskArn: string): Promise<any> {
+function cancelTask(region: Region, taskArn: string): Promise<any> {
     let params = {
         cluster: "falkordb",
         task: taskArn,
         reason: "User requested shutdown",
     };
 
-    return ecsClient.send(new StopTaskCommand(params));
+    return region.ecsClient.send(new StopTaskCommand(params));
 }
 
-function deleteService(taskArn: string): Promise<any> {
+function deleteService(region: Region, taskArn: string) {
     let params = {
         cluster: "falkordb",
         service: taskArn,
         force: true,
     }
-    return ecsClient.send(new DeleteServiceCommand(params));
+
+    return region.ecsClient.send(new DeleteServiceCommand(params));
 }
 
-async function deleteTaskDefinition(taskArn: string) {
-    const res = await ecsClient.send(new DescribeTaskDefinitionCommand({
+async function deleteTaskDefinition(region: Region, taskArn: string) : Promise<any> {
+
+    const res = await region.ecsClient.send(new DescribeTaskDefinitionCommand({
         taskDefinition: taskArn,
     }));
-    const res1 = await ecsClient.send(new DeregisterTaskDefinitionCommand({
+    const res1 = await region.ecsClient.send(new DeregisterTaskDefinitionCommand({
         taskDefinition: `${taskArn}:${res.taskDefinition?.revision}`,
     }));
-    const res2 = await ecsClient.send(new DeleteTaskDefinitionsCommand({
+    return await region.ecsClient.send(new DeleteTaskDefinitionsCommand({
         taskDefinitions: [`${taskArn}:${res.taskDefinition?.revision}`],
     }));
 }
 
-function createTaskDefinition(name: string, password: string): RegisterTaskDefinitionCommand {
+function createTaskDefinition(region: Region, name: string, password: string): RegisterTaskDefinitionCommand {
     let params = {
         "family": name,
         "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
@@ -79,7 +75,7 @@ function createTaskDefinition(name: string, password: string): RegisterTaskDefin
                     "options": {
                         "awslogs-create-group": "true",
                         "awslogs-group": "/ecs/falkordb",
-                        "awslogs-region": "eu-north-1",
+                        "awslogs-region": region.id,
                         "awslogs-stream-prefix": "ecs"
                     },
                     "secretOptions": []
@@ -102,7 +98,7 @@ function createTaskDefinition(name: string, password: string): RegisterTaskDefin
 
 /// Start an ECS service using a predefined task in an existing cluster.
 /// Use FARGATE_SPOT capacity provider.
-function createService(user: string, taskDefinition: string): CreateServiceCommand {
+function createService(region: Region, user: string, taskDefinition: string): CreateServiceCommand {
     let params = {
         cluster: "falkordb",
         serviceName: `falkordb-${user}`,
@@ -118,30 +114,30 @@ function createService(user: string, taskDefinition: string): CreateServiceComma
         platformVersion: "LATEST",
         networkConfiguration: {
             awsvpcConfiguration: {
-                subnets: SUBNETS,
+                subnets: region.subnets,
                 assignPublicIp: "ENABLED",
-                securityGroups: SECURITY_GROUPS
+                securityGroups: region.securityGroups,
             },
         },
     }
     return new CreateServiceCommand(params)
 }
 
-async function waitForService(user: UserEntity, taskArn: string) {
+async function waitForService(region: Region, user: UserEntity, taskArn: string) {
     try {
         let waitECSTask = await waitUntilServicesStable(
-            { client: ecsClient, maxWaitTime: 5, minDelay: 1 },
+            { client: region.ecsClient, maxWaitTime: 5, minDelay: 1 },
             { cluster: "falkordb", services: [taskArn] }
         )
         if (waitECSTask.state != 'SUCCESS') {
             return "";
         }
 
-        const tasks = await ecsClient.send(new ListTasksCommand({
+        const tasks = await region.ecsClient.send(new ListTasksCommand({
             cluster: "falkordb",
             serviceName: `falkordb-${user.id}`,
         }))
-        const task = await ecsClient.send(new DescribeTasksCommand({
+        const task = await region.ecsClient.send(new DescribeTasksCommand({
             cluster: "falkordb",
             tasks: tasks.taskArns ?? [],
         }))
@@ -161,7 +157,7 @@ async function waitForService(user: UserEntity, taskArn: string) {
         });
 
         // Get the public IP address of the ECS task
-        let network = await ec2Client.send(command)
+        let network = await region.ec2Client.send(command)
         return network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
     } catch (err: any) {
         if (err.name === "TimeoutError") {
@@ -171,7 +167,7 @@ async function waitForService(user: UserEntity, taskArn: string) {
     }
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
 
     // Verify that the user is logged in
     const session = await getServerSession(authOptions)
@@ -183,6 +179,13 @@ export async function POST() {
     const email = session.user?.email;
     if (!email) {
         return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
+    }
+
+    const json = await req.json()
+    let regionName = json.region
+    const region = REGIONS.get(regionName)
+    if (!region) {
+        return NextResponse.json({ message: `Task run failed, can't find region: ${regionName}` }, { status: 401 })
     }
 
     let manager = await getEntityManager()
@@ -203,12 +206,12 @@ export async function POST() {
 
         const password = generatePassword(32);
 
-        let task = createTaskDefinition(`falkordb-${user.id}`, password)
-        const taskData = await ecsClient.send(task);
+        let task = createTaskDefinition(region, `falkordb-${user.id}`, password)
+        const taskData = await region.ecsClient.send(task);
 
         // Start an ECS service using a predefined task in an existing cluster.
-        let ecsTask = createService(user.id, `falkordb-${user.id}`)
-        const data = await ecsClient.send(ecsTask);
+        let ecsTask = createService(region, user.id, `falkordb-${user.id}`)
+        const data = await region.ecsClient.send(ecsTask);
         let taskArn: string | undefined = data.service?.serviceArn
         if (typeof taskArn !== "string") {
             console.warn("Task ARN is not defined " + taskArn);
@@ -256,15 +259,24 @@ export async function DELETE() {
             return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
         }
 
+        // Get the region name from the task ARN 
+        // e.g. arn:aws:ecs:eu-north-1:119146126346:task/falkordb/f7fe437eb20e4259b861b4b91899771e
+        const regionName = user.task_arn.split(":")[3]
+        const region = REGIONS.get(regionName)
+        if (!region) {
+            return NextResponse.json({ message: `Task delete failed, can't find region: ${regionName}` }, { status: 500 })
+        }
+
         try {
-            const tasks = await ecsClient.send(new ListTasksCommand({
+            const tasks = await region.ecsClient.send(new ListTasksCommand({
                 cluster: "falkordb",
                 serviceName: `falkordb-${user.id}`,
             }))
-            await deleteService(user.task_arn);
+            await deleteService(region, user.task_arn);
+            await deleteService(region, user.task_arn);
             const taskArns = tasks.taskArns ?? [];
-            await Promise.all(taskArns.map(task => cancelTask(task)));
-            await deleteTaskDefinition(`falkordb-${user.id}`);
+            await Promise.all(taskArns.map(task => cancelTask(region, task)));
+            await deleteTaskDefinition(region, `falkordb-${user.id}`);
         } catch (err) {
             // If the task is already stopped, the StopTask action returns an error.
             if (!(err instanceof InvalidParameterException)) {
@@ -306,9 +318,17 @@ export async function GET() {
             return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
         }
 
+        // Get the region name from the task ARN 
+        // e.g. arn:aws:ecs:eu-north-1:119146126346:task/falkordb/f7fe437eb20e4259b861b4b91899771e
+        const regionName = user.task_arn.split(":")[3]
+        const region = REGIONS.get(regionName)
+        if (!region) {
+            return NextResponse.json({ message: `Task delete failed, can't find region: ${regionName}` }, { status: 500 })
+        }
+
         try {
             // Check if task is running
-            user.db_host = await waitForService(user, user.task_arn)
+            user.db_host = await waitForService(region, user, user.task_arn)
             if (user.db_host == "") {
                 return NextResponse.json({
                     host: user.db_host,

@@ -168,5 +168,5 @@ yarn-error.log*
 next-env.d.ts
 
 
-# Sentry Auth Token
+# Sentry Config File
 .sentryclirc

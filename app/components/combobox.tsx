@@ -21,10 +21,11 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 
-export function Combobox(props: {
+export function Combobox( props: {
+  className?:string,
   type?: string,
   options: string[],
-  addOption: Dispatch<SetStateAction<string[]>>,
+  addOption?: Dispatch<SetStateAction<string[]>>,
   selectedValue: string,
   setSelectedValue: Dispatch<SetStateAction<string>>
 }) {
@@ -38,7 +39,9 @@ export function Combobox(props: {
       return
     }
     props.options.push(inputRef.current.value)
-    props.addOption(props.options)
+    if (props.addOption) {
+      props.addOption(props.options)
+    }
   }
 
   function handleKeyDown(event: any) {
@@ -55,7 +58,7 @@ export function Combobox(props: {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={`w-[200px] justify-between ${props.className} `}
         >
           {props.selectedValue
             ? props.options.find((option) => option === props.selectedValue)
@@ -72,6 +75,7 @@ export function Combobox(props: {
               <CommandItem
                 key={option}
                 onSelect={(currentValue) => {
+                  console.log("currentValue", currentValue)
                   if (currentValue != props.selectedValue) {
                     props.setSelectedValue(currentValue)
                   }
@@ -89,20 +93,22 @@ export function Combobox(props: {
             ))}
             <Separator orientation="horizontal" />
 
-            <Dialog>
-              <DialogTrigger>
-                <CommandItem>Create new {entityType}...</CommandItem>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create a new {entityType}?</DialogTitle>
-                  <DialogDescription>
-                    <Input type="text" ref={inputRef} id="create" name="create" onKeyDown={handleKeyDown} placeholder={`${entityType} name ...`} />
-                  </DialogDescription>
-                </DialogHeader>
-                <Button className="bg-blue-600 p-4 text-slate-50" type="submit" onClick={onAddOption}>Create</Button>
-              </DialogContent>
-            </Dialog>
+            { props.addOption &&
+              <Dialog>
+                <DialogTrigger>
+                  <CommandItem>Create new {entityType}...</CommandItem>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create a new {entityType}?</DialogTitle>
+                    <DialogDescription>
+                      <Input type="text" ref={inputRef} id="create" name="create" onKeyDown={handleKeyDown} placeholder={`${entityType} name ...`} />
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Button className="bg-blue-600 p-4 text-slate-50" type="submit" onClick={onAddOption}>Create</Button>
+                </DialogContent>
+              </Dialog>
+            }
           </CommandGroup>
         </Command>
       </PopoverContent>
