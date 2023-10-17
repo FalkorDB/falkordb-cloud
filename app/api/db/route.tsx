@@ -11,6 +11,8 @@ import { generatePassword } from "./password";
 import { REGIONS, Region } from "./regions";
 import { v4 as uuidv4 } from 'uuid';
 
+const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? "";
+
 function cancelTask(region: Region, taskArn: string): Promise<any> {
     let params = {
         cluster: "falkordb",
@@ -132,14 +134,16 @@ function createService(region: Region, user: string, taskDefinition: string): Cr
     return new CreateServiceCommand(params)
 }
 
-async function waitForService(region: Region, user: UserEntity, taskArn: string) {
+async function waitForService(region: Region, user: UserEntity, taskArn: string) : Promise<void> {
     try {
         let waitECSTask = await waitUntilServicesStable(
             { client: region.ecsClient, maxWaitTime: 5, minDelay: 1 },
             { cluster: "falkordb", services: [taskArn] }
         )
+
+        // Task is not ready yet
         if (waitECSTask.state != 'SUCCESS') {
-            return "";
+            return;
         }
 
         const tasks = await region.ecsClient.send(new ListTasksCommand({
@@ -204,7 +208,7 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
 
         const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
         if (!privateIp) {
-            return "";
+            return;
         }
 
         // Get the public IP address of the ECS task
@@ -221,7 +225,7 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
         const dns = `${user.id}.falkordb.io`;
 
         const response = await region.route53Client.send(new ChangeResourceRecordSetsCommand({
-            HostedZoneId: region.hostedZoneId,
+            HostedZoneId: HOSTED_ZONE_ID,
             ChangeBatch: {
                 Comment: "add database dns",
                 Changes: [

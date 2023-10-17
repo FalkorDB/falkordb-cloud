@@ -12,7 +12,6 @@ export interface Region {
     ecsClient: ECSClient,
     ec2Client: EC2Client,
     route53Client: Route53Client,
-    hostedZoneId: string,
 }
 
 export const REGIONS = new Map<string, Region>([
@@ -25,7 +24,6 @@ export const REGIONS = new Map<string, Region>([
         ecsClient: new ECSClient({ region: REGIONS_IDS.USWest1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.USWest1 }),
         route53Client: new Route53Client({ region: REGIONS_IDS.USWest1 }),
-        hostedZoneId: "Z0440970DLRH0Z0KZO8E",
     }],
     [REGIONS_IDS.USEast1, {
         id: REGIONS_IDS.USEast1,
@@ -37,7 +35,6 @@ export const REGIONS = new Map<string, Region>([
         ecsClient: new ECSClient({ region: REGIONS_IDS.USEast1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.USEast1 }),
         route53Client: new Route53Client({ region: REGIONS_IDS.USEast1 }),
-        hostedZoneId: "Z0440970DLRH0Z0KZO8E",
     }],
     [REGIONS_IDS.EUNorth1, {
         id: REGIONS_IDS.EUNorth1,
@@ -48,7 +45,6 @@ export const REGIONS = new Map<string, Region>([
         ecsClient: new ECSClient({ region:REGIONS_IDS.EUNorth1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.EUNorth1 }),
         route53Client: new Route53Client({ region: REGIONS_IDS.EUNorth1 }),
-        hostedZoneId: "Z0440970DLRH0Z0KZO8E",
     }],
     [REGIONS_IDS.EUCentral1, {
         id: REGIONS_IDS.EUCentral1,
@@ -59,7 +55,6 @@ export const REGIONS = new Map<string, Region>([
         ecsClient: new ECSClient({ region: REGIONS_IDS.EUCentral1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.EUCentral1 }),
         route53Client: new Route53Client({ region: REGIONS_IDS.EUCentral1 }),
-        hostedZoneId: "Z0440970DLRH0Z0KZO8E",
     }],
     [REGIONS_IDS.APSouth1, {
         id: REGIONS_IDS.APSouth1,
@@ -70,7 +65,6 @@ export const REGIONS = new Map<string, Region>([
         ecsClient: new ECSClient({ region: REGIONS_IDS.APSouth1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.APSouth1 }),
         route53Client: new Route53Client({ region: REGIONS_IDS.APSouth1 }),
-        hostedZoneId: "Z0440970DLRH0Z0KZO8E",
     }]
 ])
 

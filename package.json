@@ -34,7 +34,7 @@
     "cmdk": "^0.2.0",
     "echarts-for-react": "^3.0.2",
     "eslint": "8.51.0",
-    "eslint-config-next": "13.5.4",
+    "eslint-config-next": "13.5.5",
     "lucide-react": "^0.287.0",
     "next": "13.4.19",
     "next-auth": "4.23.2",
