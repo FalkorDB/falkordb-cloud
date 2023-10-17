@@ -54,8 +54,8 @@ export const REGIONS = new Map<string, Region>([
         id: REGIONS_IDS.APSouth1,
         name: "Asia Pacific (Mumbai)",
         clusterARN: `arn:aws:ecs:${REGIONS_IDS.APSouth1}:119146126346:cluster/falkordb`,
-        subnets: ["sg-0612316bbee7c5040"],
-        securityGroups: ["subnet-066c8eedfcba2ec04", "subnet-0f140bd96427b3de9", "subnet-0c867f841a2568541"],
+        subnets: ["subnet-066c8eedfcba2ec04", "subnet-0f140bd96427b3de9", "subnet-0c867f841a2568541"],
+        securityGroups: ["sg-0612316bbee7c5040"],
         ecsClient: new ECSClient({ region: REGIONS_IDS.APSouth1 }),
         ec2Client: new EC2Client({ region: REGIONS_IDS.APSouth1 }),
     }]
