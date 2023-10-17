@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { UserEntity } from '../../models/entities';
 import { createClient, Graph } from 'redis';
 
-export async function GET(request: NextRequest,  { params }: { params: { graph: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { graph: string } }) {
 
     const session = await getServerSession(authOptions)
 
@@ -22,18 +22,27 @@ export async function GET(request: NextRequest,  { params }: { params: { graph: 
         email: email
     })
 
-    const client = await createClient( {
-        url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
-    }).connect();
+    const client = user?.tls ?
+        await createClient({
+            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+            socket: {
+                tls: true,
+                rejectUnauthorized: false,
+                ca: user?.cacert ?? ""
+            }
+        }).connect()
+        : await createClient({
+            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        }).connect();
 
     const graph = new Graph(client, params.graph);
-    
+
     const q = request.nextUrl.searchParams.get("q");
     if (!q) {
         return NextResponse.json({ message: "Missing query parameter 'q'" }, { status: 400 })
     }
 
-    try{
+    try {
         let result = await graph.query(q)
         return NextResponse.json({ result: result }, { status: 200 })
     } catch (err: any) {

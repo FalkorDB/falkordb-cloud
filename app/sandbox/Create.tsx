@@ -7,7 +7,7 @@ import { REGIONS_IDS } from "../api/db/redionsIDs";
 
 const regions = Object.values(REGIONS_IDS)
 
-export function Create(props: { onCreate: (region:string)=>void }) {
+export function Create(props: { onCreate: (region:string, tls: boolean)=>void }) {
     
     
     const [regionID, selectedRegion] = useState<string>(regions[0]);
@@ -19,7 +19,8 @@ export function Create(props: { onCreate: (region:string)=>void }) {
                 options={regions}
                 selectedValue={regionID} 
                 setSelectedValue={selectedRegion} />
-            <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={()=>props.onCreate(regionID)}>Create Sandbox</Button>
+            <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={()=>props.onCreate(regionID, false)}>Create Sandbox</Button>
+            <Button className="bg-blue-600 text-4xl p-8 text-slate-50" onClick={()=>props.onCreate(regionID, true)}>Create Sandbox with TLS</Button>
         </>
     );
 }

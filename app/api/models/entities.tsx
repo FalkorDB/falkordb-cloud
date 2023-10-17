@@ -58,6 +58,12 @@ export class UserEntity {
 
   @Column({ type: "varchar", nullable: true })
   task_arn!: string | null
+
+  @Column({ type: "varchar", nullable: true })
+  cacert!: string | null
+
+  @Column({ type: "boolean", nullable: true })
+  tls: boolean | null = false
 }
 
 @Entity({ name: "accounts" })
