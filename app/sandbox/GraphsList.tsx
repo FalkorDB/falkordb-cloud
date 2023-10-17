@@ -2,8 +2,6 @@ import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Combobox } from '../components/combobox';
 import { useToast } from "@/components/ui/use-toast"
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-
 
 // A component that renders an input box for Cypher queries
 export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<string>> }) {

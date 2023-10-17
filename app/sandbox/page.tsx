@@ -118,9 +118,6 @@ export default function Page() {
     return []
   }
 
-  const zones = ["eu-north-1"]
-  const selectedZone = zones[0]
-
   // render the sandbox details if exists
   if (sandbox) {
     return (

@@ -1,7 +1,6 @@
 "use client";
 import { Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function Footer() {
 
