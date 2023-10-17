@@ -9,6 +9,7 @@ import { UserEntity } from "../models/entities";
 import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import { REGIONS, Region } from "./regions";
+import { v4 as uuidv4 } from 'uuid';
 
 function cancelTask(region: Region, taskArn: string): Promise<any> {
     let params = {
@@ -152,13 +153,13 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
 
         while (task.tasks?.[0].containers?.[0].lastStatus != "RUNNING") {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            task = await ecsClient.send(new DescribeTasksCommand({
+            task = await region.ecsClient.send(new DescribeTasksCommand({
                 cluster: "falkordb",
                 tasks: tasks.taskArns ?? [],
             }))
         }
 
-        const res = await ecsClient.send(new ExecuteCommandCommand({
+        const res = await region.ecsClient.send(new ExecuteCommandCommand({
             cluster: "falkordb",
             command: "cat /FalkorDB/tls/ca.crt",
             interactive: true,
@@ -203,7 +204,7 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
         }
 
         // Get the public IP address of the ECS task
-        let network = await ec2Client.send(new DescribeNetworkInterfacesCommand({
+        let network = await region.ec2Client.send(new DescribeNetworkInterfacesCommand({
             Filters: [
                 {
                     Name: "private-ip-address",
@@ -216,7 +217,7 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
         const dns = `${user.id}.falkordb.io`;
 
         const response = await region.route53Client.send(new ChangeResourceRecordSetsCommand({
-            HostedZoneId: "Z0440970DLRH0Z0KZO8E",
+            HostedZoneId: region.hostedZoneId,
             ChangeBatch: {
                 Comment: "add database dns",
                 Changes: [
