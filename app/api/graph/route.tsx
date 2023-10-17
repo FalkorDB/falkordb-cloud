@@ -9,9 +9,9 @@ import path from 'path';
 // Load example files
 let exampleFiles = new Map<string, Buffer>()
 let exampleFileNames: string[] = []
-const p = path.resolve( process.cwd(), 'app/examples')
+const p = path.resolve(process.cwd(), 'app/examples')
 fs.readdir(p).then((files) => {
-    files.forEach(file => {        
+    files.forEach(file => {
         fs.readFile(`${p}/${file}`, { encoding: 'hex' })
             .then((data) => {
                 const buffer = Buffer.from(data, 'hex')
@@ -40,14 +40,18 @@ export async function GET() {
         email: email
     })
 
-    const client = await createClient({
-        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
-        socket: {
-            tls: true,
-            rejectUnauthorized: false,
-            ca: user?.cacert ?? ""
-        }
-    }).connect();
+    const client = user?.tls ?
+        await createClient({
+            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+            socket: {
+                tls: true,
+                rejectUnauthorized: false,
+                ca: user?.cacert ?? ""
+            }
+        }).connect()
+        : await createClient({
+            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        }).connect();;
 
 
     try {
@@ -75,14 +79,18 @@ export async function POST(req: NextRequest) {
         email: email
     })
 
-    const client = await createClient({
-        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
-        socket: {
-            tls: true,
-            rejectUnauthorized: false,
-            ca: user?.cacert ?? ""
-        }
-    }).connect();
+    const client = user?.tls ?
+        await createClient({
+            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+            socket: {
+                tls: true,
+                rejectUnauthorized: false,
+                ca: user?.cacert ?? ""
+            }
+        }).connect()
+        : await createClient({
+            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        }).connect();;
 
     let body = await req.json()
     const name = body.name
@@ -97,5 +105,5 @@ export async function POST(req: NextRequest) {
 
     } catch (err) {
         return NextResponse.json({ message: err }, { status: 500 })
-    }    
+    }
 }

@@ -16,7 +16,9 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                 <DatabaseLine label="Port" value={sandbox.port.toString()} />
                 <DatabaseLine label="Password" value={sandbox.password} masked="********" />
                 <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked} />
-                <DatabaseLine label="CaCert" value={sandbox.cacert} masked="***"/>
+                {sandbox.tls &&
+                    <DatabaseLine label="CaCert" value={sandbox.cacert} masked="***" />
+                }
                 <Dialog>
                     <DialogTrigger>
                         <Button className="bg-blue-600 p-2 text-slate-50">

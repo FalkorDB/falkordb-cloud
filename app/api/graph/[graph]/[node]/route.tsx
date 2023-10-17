@@ -22,17 +22,21 @@ export async function GET(request: NextRequest, { params }: { params: { graph: s
         email: email
     })
 
-    const client = await createClient({
-        url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
-        socket: {
-            tls: true,
-            rejectUnauthorized: false,
-            ca: user?.cacert ?? ""
-        }
-    }).connect();
+    const client = user?.tls ?
+        await createClient({
+            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+            socket: {
+                tls: true,
+                rejectUnauthorized: false,
+                ca: user?.cacert ?? ""
+            }
+        }).connect()
+        : await createClient({
+            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
+        }).connect();;
 
     const graph = new Graph(client, params.graph);
-    
+
     try {
         let result = await graph.query("Match (s)-[r]->(t) where ID(s) = $id return r,t", { params: { id: parseInt(params.node) } })
         return NextResponse.json({ result: result }, { status: 200 })
