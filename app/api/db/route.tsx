@@ -1,5 +1,6 @@
 import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
+import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
 import WebSocket from 'ws';
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
@@ -15,6 +16,7 @@ const SUBNETS = process.env.SUBNETS?.split(":");
 const SECURITY_GROUPS = process.env.SECURITY_GROUPS?.split(":");
 const ecsClient = new ECSClient({ region: process.env.REGION });
 const ec2Client = new EC2Client({ region: process.env.REGION });
+const route53Client = new Route53Client({ region: process.env.REGION });
 
 function cancelTask(taskArn: string): Promise<any> {
     let params = {
@@ -149,10 +151,18 @@ async function waitForService(user: UserEntity, taskArn: string) {
             cluster: "falkordb",
             serviceName: `falkordb-${user.id}`,
         }))
-        const task = await ecsClient.send(new DescribeTasksCommand({
+        let task = await ecsClient.send(new DescribeTasksCommand({
             cluster: "falkordb",
             tasks: tasks.taskArns ?? [],
         }))
+
+        while (task.tasks?.[0].containers?.[0].lastStatus != "RUNNING") {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            task = await ecsClient.send(new DescribeTasksCommand({
+                cluster: "falkordb",
+                tasks: tasks.taskArns ?? [],
+            }))
+        }
 
         const res = await ecsClient.send(new ExecuteCommandCommand({
             cluster: "falkordb",
@@ -168,7 +178,6 @@ async function waitForService(user: UserEntity, taskArn: string) {
             ws.on('error', reject);
 
             ws.on('open', function open() {
-                console.log('connected');
                 ws.send(JSON.stringify({
                     "MessageSchemaVersion": "1.0",
                     "RequestId": uuidv4(),
@@ -177,20 +186,17 @@ async function waitForService(user: UserEntity, taskArn: string) {
             });
 
             ws.on('message', function message(data) {
-                console.log('received: %s', data);
                 if (data instanceof Buffer) {
                     let n = data.readInt32BE(0);
                     data = data.slice(4 + n);
-                    console.log(n);
                 }
                 accdata += data.toString();
             });
 
             ws.on('close', function close() {
-                console.log('disconnected');
                 let sidx = accdata.indexOf("-----BEGIN CERTIFICATE-----");
                 let eidx = accdata.indexOf("-----END CERTIFICATE-----");
-                let cacert = accdata.substring(sidx, eidx + 25  );
+                let cacert = accdata.substring(sidx, eidx + 25);
                 resolve(cacert);
             });
         });
@@ -202,19 +208,44 @@ async function waitForService(user: UserEntity, taskArn: string) {
             return "";
         }
 
-        const command = new DescribeNetworkInterfacesCommand({
+        // Get the public IP address of the ECS task
+        let network = await ec2Client.send(new DescribeNetworkInterfacesCommand({
             Filters: [
                 {
                     Name: "private-ip-address",
                     Values: [privateIp],
                 },
             ],
-        });
+        }))
 
-        // Get the public IP address of the ECS task
-        let network = await ec2Client.send(command)
+        const publicIp = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        const dns = `${user.id}.falkordb.io`;
+
+        const response = await route53Client.send(new ChangeResourceRecordSetsCommand({
+            HostedZoneId: "Z0440970DLRH0Z0KZO8E",
+            ChangeBatch: {
+                Comment: "add database dns",
+                Changes: [
+                    {
+                        Action: "UPSERT",
+                        ResourceRecordSet: {
+                            Name: dns,
+                            Type: "A",
+                            TTL: 300,
+                            ResourceRecords: [
+                                {
+                                    Value: publicIp,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }));
+
+
         user.cacert = cacert;
-        user.db_host = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        user.db_host = dns;
         return;
     } catch (err: any) {
         if (err.name === "TimeoutError") {
