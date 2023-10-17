@@ -54,13 +54,13 @@ export default function Page() {
   }
 
   // Create a sandbox on click
-  function createSandbox(region: string) {
+  function createSandbox(region: string, tls: boolean) {
     fetch('/api/db', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ region })
+      body: JSON.stringify({ region, tls })
     }).then((res) => {
       setLoading(State.BuildingSandbox)
     }).catch(() => {
@@ -117,9 +117,6 @@ export default function Page() {
     })
     return []
   }
-
-  const zones = ["eu-north-1"]
-  const selectedZone = zones[0]
 
   // render the sandbox details if exists
   if (sandbox) {

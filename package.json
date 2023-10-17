@@ -12,6 +12,7 @@
     "@auth/typeorm-adapter": "^1.0.4",
     "@aws-sdk/client-ec2": "^3.427.0",
     "@aws-sdk/client-ecs": "^3.427.0",
+    "@aws-sdk/client-route-53": "^3.429.0",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.0.3",
@@ -33,7 +34,7 @@
     "cmdk": "^0.2.0",
     "echarts-for-react": "^3.0.2",
     "eslint": "8.51.0",
-    "eslint-config-next": "13.5.4",
+    "eslint-config-next": "13.5.5",
     "lucide-react": "^0.287.0",
     "next": "13.4.19",
     "next-auth": "4.23.2",
@@ -47,9 +48,13 @@
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typeorm": "^0.3.17",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "uuid": "^9.0.1",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
-    "@types/node": "^20.8.4"
+    "@types/node": "^20.8.4",
+    "@types/uuid": "^9.0.5",
+    "@types/ws": "^8.5.7"
   }
 }

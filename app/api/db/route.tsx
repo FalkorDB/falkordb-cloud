@@ -1,5 +1,7 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
+import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
+import WebSocket from 'ws';
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from "next-auth/next"
@@ -7,6 +9,9 @@ import { UserEntity } from "../models/entities";
 import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import { REGIONS, Region } from "./regions";
+import { v4 as uuidv4 } from 'uuid';
+
+const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? "";
 
 function cancelTask(region: Region, taskArn: string): Promise<any> {
     let params = {
@@ -28,7 +33,7 @@ function deleteService(region: Region, taskArn: string) {
     return region.ecsClient.send(new DeleteServiceCommand(params));
 }
 
-async function deleteTaskDefinition(region: Region, taskArn: string) : Promise<any> {
+async function deleteTaskDefinition(region: Region, taskArn: string): Promise<any> {
 
     const res = await region.ecsClient.send(new DescribeTaskDefinitionCommand({
         taskDefinition: taskArn,
@@ -41,9 +46,10 @@ async function deleteTaskDefinition(region: Region, taskArn: string) : Promise<a
     }));
 }
 
-function createTaskDefinition(region: Region, name: string, password: string): RegisterTaskDefinitionCommand {
+function createTaskDefinition(region: Region, tls: boolean, name: string, password: string): RegisterTaskDefinitionCommand {
     let params = {
         "family": name,
+        "taskRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "networkMode": "awsvpc",
         "containerDefinitions": [
@@ -65,6 +71,10 @@ function createTaskDefinition(region: Region, name: string, password: string): R
                         name: "REDIS_ARGS",
                         value: `--requirepass ${password}`,
                     },
+                    {
+                        name: "TLS",
+                        value: tls ? "1" : "0",
+                    }
                 ],
                 "environmentFiles": [],
                 "mountPoints": [],
@@ -103,6 +113,7 @@ function createService(region: Region, user: string, taskDefinition: string): Cr
         cluster: "falkordb",
         serviceName: `falkordb-${user}`,
         taskDefinition: taskDefinition,
+        enableExecuteCommand: true,
         desiredCount: 1,
         capacityProviderStrategy: [
             {
@@ -123,45 +134,123 @@ function createService(region: Region, user: string, taskDefinition: string): Cr
     return new CreateServiceCommand(params)
 }
 
-async function waitForService(region: Region, user: UserEntity, taskArn: string) {
+async function waitForService(region: Region, user: UserEntity, taskArn: string) : Promise<void> {
     try {
         let waitECSTask = await waitUntilServicesStable(
             { client: region.ecsClient, maxWaitTime: 5, minDelay: 1 },
             { cluster: "falkordb", services: [taskArn] }
         )
+
+        // Task is not ready yet
         if (waitECSTask.state != 'SUCCESS') {
-            return "";
+            return;
         }
 
         const tasks = await region.ecsClient.send(new ListTasksCommand({
             cluster: "falkordb",
             serviceName: `falkordb-${user.id}`,
         }))
-        const task = await region.ecsClient.send(new DescribeTasksCommand({
+        let task = await region.ecsClient.send(new DescribeTasksCommand({
             cluster: "falkordb",
             tasks: tasks.taskArns ?? [],
         }))
 
-        const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
-        if (!privateIp) {
-            return "";
+        if (user.tls) {
+            while (task.tasks?.[0].containers?.[0].managedAgents?.[0].lastStatus != "RUNNING") {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                task = await region.ecsClient.send(new DescribeTasksCommand({
+                    cluster: "falkordb",
+                    tasks: tasks.taskArns ?? [],
+                }))
+            }
+
+            const res = await region.ecsClient.send(new ExecuteCommandCommand({
+                cluster: "falkordb",
+                command: "cat /FalkorDB/tls/ca.crt",
+                interactive: true,
+                task: task.tasks?.[0].taskArn
+            }));
+
+            const ws = new WebSocket(res.session?.streamUrl ?? "");
+
+            const cacert: string = await new Promise((resolve, reject) => {
+                let accdata = "";
+                ws.on('error', reject);
+
+                ws.on('open', function open() {
+                    ws.send(JSON.stringify({
+                        "MessageSchemaVersion": "1.0",
+                        "RequestId": uuidv4(),
+                        "TokenValue": res.session?.tokenValue
+                    }));
+                });
+
+                ws.on('message', function message(data) {
+                    if (data instanceof Buffer) {
+                        let n = data.readInt32BE(0);
+                        data = data.slice(4 + n);
+                    }
+                    accdata += data.toString();
+                });
+
+                ws.on('close', function close() {
+                    let sidx = accdata.indexOf("-----BEGIN CERTIFICATE-----");
+                    let eidx = accdata.indexOf("-----END CERTIFICATE-----");
+                    let cacert = accdata.substring(sidx, eidx + 25);
+                    resolve(cacert);
+                });
+            });
+
+            ws.terminate();
+
+            user.cacert = cacert;
         }
 
-        const command = new DescribeNetworkInterfacesCommand({
+        const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
+        if (!privateIp) {
+            return;
+        }
+
+        // Get the public IP address of the ECS task
+        let network = await region.ec2Client.send(new DescribeNetworkInterfacesCommand({
             Filters: [
                 {
                     Name: "private-ip-address",
                     Values: [privateIp],
                 },
             ],
-        });
+        }))
 
-        // Get the public IP address of the ECS task
-        let network = await region.ec2Client.send(command)
-        return network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        const publicIp = network.NetworkInterfaces?.[0].Association?.PublicIp?.toString() ?? "";
+        const dns = `${user.id}.falkordb.io`;
+
+        const response = await region.route53Client.send(new ChangeResourceRecordSetsCommand({
+            HostedZoneId: HOSTED_ZONE_ID,
+            ChangeBatch: {
+                Comment: "add database dns",
+                Changes: [
+                    {
+                        Action: "UPSERT",
+                        ResourceRecordSet: {
+                            Name: dns,
+                            Type: "A",
+                            TTL: 300,
+                            ResourceRecords: [
+                                {
+                                    Value: publicIp,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }));
+
+        user.db_host = dns;
+        return;
     } catch (err: any) {
         if (err.name === "TimeoutError") {
-            return "";
+            return;
         }
         throw err;
     }
@@ -183,6 +272,7 @@ export async function POST(req: NextRequest) {
 
     const json = await req.json()
     let regionName = json.region
+    let tls = json.tls
     const region = REGIONS.get(regionName)
     if (!region) {
         return NextResponse.json({ message: `Task run failed, can't find region: ${regionName}` }, { status: 401 })
@@ -206,7 +296,7 @@ export async function POST(req: NextRequest) {
 
         const password = generatePassword(32);
 
-        let task = createTaskDefinition(region, `falkordb-${user.id}`, password)
+        let task = createTaskDefinition(region, tls, `falkordb-${user.id}`, password)
         const taskData = await region.ecsClient.send(task);
 
         // Start an ECS service using a predefined task in an existing cluster.
@@ -224,6 +314,7 @@ export async function POST(req: NextRequest) {
         user.db_port = 6379;
         user.db_password = password;
         user.db_create_time = new Date();
+        user.tls = tls;
 
         await transactionalEntityManager.save(user)
         return NextResponse.json({ message: "Task Started" }, { status: 201 })
@@ -328,13 +419,15 @@ export async function GET() {
 
         try {
             // Check if task is running
-            user.db_host = await waitForService(region, user, user.task_arn)
+            await waitForService(region, user, user.task_arn)
             if (user.db_host == "") {
                 return NextResponse.json({
                     host: user.db_host,
                     port: user.db_port,
                     password: user.db_password,
                     create_time: user.db_create_time,
+                    cacert: user.cacert,
+                    tls: user.tls,
                     status: "BUILDING",
                 }, { status: 200 })
             }
@@ -354,6 +447,8 @@ export async function GET() {
             port: user.db_port,
             password: user.db_password,
             create_time: user.db_create_time,
+            cacert: user.cacert,
+            tls: user.tls,
             status: "READY",
         }, { status: 200 })
     })
