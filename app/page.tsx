@@ -8,10 +8,10 @@ export default function Page() {
         <h1 className="text-6xl font-bold">
           Welcome to{' '}
           <Link className="text-blue-600 underline underline-offset-2" href="/sandbox">
-            FalkorDB Cloud
+            FalkorDB Sandbox
           </Link>
         </h1>
-        <p className="mt-3 text-4xl">(Sandbox)</p>
+        <p className="mt-3 text-2xl">(<u>Don&apos;t</u> use in production or store critical data)</p>
       </main>
     </div>
   )
