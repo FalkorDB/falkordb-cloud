@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -30,10 +31,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { columnsDef } from "./Column"
+import Columns from "./Columns"
   
-export function DataTable(props: { rows: any[], columnNames: string[]}) {
-  const columns = columnsDef(props.columnNames)
+export function DataTable(props: { rows: any[], columnNames: string[], actions?: { name: string, onClick: (row: Row<any>) => void }[]}) {
+  const columns = Columns(props.columnNames, props.actions)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

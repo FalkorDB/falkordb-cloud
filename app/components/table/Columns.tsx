@@ -2,6 +2,7 @@
 import {
   Column,
   ColumnDef,
+  Row,
   // ColumnFiltersState,
   // SortingState,
   // VisibilityState,
@@ -16,15 +17,14 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-// import { Checkbox } from "@/components/ui/checkbox"
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function SortColumn(props: { column: Column<any, unknown> }) {
   return (
@@ -39,10 +39,9 @@ function SortColumn(props: { column: Column<any, unknown> }) {
 }
 
 
-export function columnsDef(columns: string[]): ColumnDef<any>[] {
-   
-  
-  let result : ColumnDef<any>[]= [
+export default function Columns(columns: string[], actions?: { name: string, onClick: (data: Row<any>) => void }[]): ColumnDef<any>[] {
+
+  let result: ColumnDef<any>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -67,7 +66,7 @@ export function columnsDef(columns: string[]): ColumnDef<any>[] {
   columns.forEach((columnName) => {
     result.push({
       accessorKey: columnName,
-      header: ({ column }) =>  (
+      header: ({ column }) => (
         <SortColumn column={column} />
       ),
       accessorFn: (row) => {
@@ -76,38 +75,34 @@ export function columnsDef(columns: string[]): ColumnDef<any>[] {
     })
   })
 
-  // result.push( 
-  //   {
-  //     id: "actions",
-  //     enableHiding: false,
-  //     cell: ({ row }) => {
-  //       const payment = row.original
+  if (actions) {
+    result.push(
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                {
+                  actions.map((action) => {
+                    return (<DropdownMenuItem key={action.name} onClick={(event)=>action.onClick(row)}>{action.name}</DropdownMenuItem>)
+                  })
+                }
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        },
+      }
+    )
+  }
 
-  //       return (
-  //         <DropdownMenu>
-  //           <DropdownMenuTrigger asChild>
-  //             <Button variant="ghost" className="h-8 w-8 p-0">
-  //               <span className="sr-only">Open menu</span>
-  //               <MoreHorizontal className="h-4 w-4" />
-  //             </Button>
-  //           </DropdownMenuTrigger>
-  //           <DropdownMenuContent align="end">
-  //             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-  //             <DropdownMenuItem
-  //               onClick={() => navigator.clipboard.writeText(payment.id)}
-  //             >
-  //               Copy payment ID
-  //             </DropdownMenuItem>
-  //             <DropdownMenuSeparator />
-  //             <DropdownMenuItem>View customer</DropdownMenuItem>
-  //             <DropdownMenuItem>View payment details</DropdownMenuItem>
-  //           </DropdownMenuContent>
-  //         </DropdownMenu>
-  //       )
-  //     },
-  //   }
-  // )
-  
-  
   return result
 }

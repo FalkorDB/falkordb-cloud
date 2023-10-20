@@ -5,6 +5,7 @@ import { DataTable } from "../components/table/DataTable";
 import useSWR from 'swr'
 import { useState } from "react";
 import Spinning from "../components/spinning";
+import { Row } from "@tanstack/react-table";
 
 
 interface User {
@@ -37,6 +38,36 @@ function getUsers(props: {pageIndex:number}): Promise<User[]> {
     })
 }
 
+function deleteSandbox(row: Row<any>) {
+  let user:User = row.original
+
+  if (!user.task_arn){
+    toast({
+      title: "Error",
+      description: "No task_arn found",
+    })
+    return
+  }
+
+  fetch(`/api/db/${encodeURIComponent(user.task_arn)}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then((result) => {
+      if (result.status < 300) {
+        return result.json()
+      }
+      toast({
+        title: "Error",
+        description: result.text(),
+      })
+      return { result: [] }
+    })
+}
+
+
 export default function Page() {
 
   const [pageIndex, setPageIndex] = useState(0);
@@ -54,7 +85,12 @@ export default function Page() {
           {
             (error || !data) ? 
             <div>failed to load</div> :
-            <DataTable rows={data} columnNames={["email", "id", "name", "db_host", "db_port", "db_create_time", "tls", "task_arn"]} />
+            <DataTable rows={data} 
+            columnNames={["email", "id", "name", "db_host", "db_port", "db_create_time", "tls", "task_arn"]}
+            actions={[
+              { name: "Delete Sandbox", onClick:deleteSandbox },
+            ]}
+             />
           }
         </div>
       </main>
