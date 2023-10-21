@@ -88,7 +88,7 @@ export default function Page() {
             <DataTable rows={data} 
             columnNames={["email", "id", "name", "db_host", "db_port", "db_create_time", "tls", "task_arn"]}
             actions={[
-              { name: "Delete Sandbox", onClick:deleteSandbox },
+              { name: "Delete Sandbox", onAction:deleteSandbox, warning:"This action cannot be undone. This will permanently delete your sandbox and remove the data from our servers." },
             ]}
              />
           }

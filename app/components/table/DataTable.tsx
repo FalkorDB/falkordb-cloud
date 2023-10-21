@@ -31,9 +31,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import Columns from "./Columns"
+import Columns, { Action } from "./Columns"
   
-export function DataTable(props: { rows: any[], columnNames: string[], actions?: { name: string, onClick: (row: Row<any>) => void }[]}) {
+export function DataTable(props: { rows: any[], columnNames: string[], actions?: Action[], warning?:string}) {
   const columns = Columns(props.columnNames, props.actions)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
