@@ -6,6 +6,7 @@ import { DataTable } from '../components/table/DataTable';
 import { Category, DirectedGraph, GraphData, GraphLink } from '../components/DirectedGraph';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
+import { toast } from '@/components/ui/use-toast';
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -137,6 +138,12 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         // TODO - add error or Disable button
         if (valid && selectedGraph) {
             let newResults: GraphResult = await props.onSubmit(selectedGraph, query);
+            if (!newResults || !newResults.data?.length) {
+                toast({
+                    title: "No results",
+                    description: "The query returned no results",
+                })
+            }
             setResults(newResults)
         }
     }

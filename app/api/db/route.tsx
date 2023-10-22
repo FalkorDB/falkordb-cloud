@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable, RegisterTaskDefinitionCommandInput, CreateServiceCommandInput } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable, CreateServiceCommandInput, RegisterTaskDefinitionCommandInput } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
 import WebSocket from 'ws';
@@ -15,7 +15,7 @@ import { deleteSandBox } from "./sandbox";
 const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? "";
 
 function createTaskDefinition(region: Region, tls: boolean, name: string, password: string): RegisterTaskDefinitionCommand {
-    let params : RegisterTaskDefinitionCommandInput = {
+    let params: RegisterTaskDefinitionCommandInput = {
         "family": name,
         "taskRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
