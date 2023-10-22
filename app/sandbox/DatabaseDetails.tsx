@@ -9,7 +9,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
-import { BASH_EXAMPLE, JS_EXAMPLE } from "./examples";
+import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE } from "./examples";
 
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
@@ -64,13 +64,19 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                 </div>
             </div>
             <Tabs defaultValue="javascript" className="bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 p-2 m-2 grow max-w-4xl">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                    <TabsTrigger value="python">Python</TabsTrigger>
                     <TabsTrigger value="cli">CLI</TabsTrigger>
                 </TabsList>
                 <TabsContent value="javascript">
                     <SyntaxHighlighter language="javascript" style={dracula}>
                         {JS_EXAMPLE}
+                    </SyntaxHighlighter>
+                </TabsContent>
+                <TabsContent value="python">
+                    <SyntaxHighlighter language="python" style={dracula}>
+                        {PYTHON_EXAMPLE}
                     </SyntaxHighlighter>
                 </TabsContent>
                 <TabsContent value="cli">

@@ -32,3 +32,15 @@ await client.connect();
 const graph = new Graph(client, 'movies');
 
 let result = await graph.query("MATCH (n)-[:ACTED_IN]->(m:Movie {title:'Top Gun'}) RETURN n LIMIT 1");`
+
+
+export const PYTHON_EXAMPLE  = 
+`import redis
+
+r = redis.Redis(host='XYZ.falkordb.io', password='XXXXXX')
+
+# uncomment the following lines if you want to use TLS
+# r = redis.Redis(host='XYZ.falkordb.io', password='XXXXXX', ssl=True, ssl_ca_path='ca.crt')
+
+graph = r.graph('movies')
+graph.query("MATCH (n)-[:ACTED_IN]->(m:Movie {title:'Top Gun'}) RETURN n LIMIT 1")`
