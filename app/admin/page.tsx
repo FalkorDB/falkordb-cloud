@@ -44,7 +44,7 @@ function deleteSandbox(row: Row<any>) {
   if (!user.task_arn){
     toast({
       title: "Error",
-      description: "No task_arn found",
+      description: "No sandbox found",
     })
     return
   }

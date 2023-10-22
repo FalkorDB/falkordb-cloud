@@ -76,7 +76,6 @@ export async function deleteSandBox(user: UserEntity, transactionalEntityManager
                 serviceName: `falkordb-${user.id}`,
             }))
             await deleteService(region, user.task_arn);
-            await deleteService(region, user.task_arn);
             const taskArns = tasks.taskArns ?? [];
             await Promise.all(taskArns.map(task => cancelTask(region, task)));
             await deleteTaskDefinition(region, `falkordb-${user.id}`);
