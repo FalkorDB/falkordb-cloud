@@ -2,7 +2,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { DatabaseLine } from "./DatabaseLine";
-import Link from "next/link";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
+
+import { BASH_EXAMPLE, JS_EXAMPLE } from "./examples";
+
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void }) {
 
@@ -10,42 +20,65 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
     let redisURL = `rediss://${sandbox.password}@${sandbox.host}:${sandbox.port}`
     let redisURLMasked = `rediss://********@${sandbox.host}:${sandbox.port}`
 
-    
+
     let caURL = null;
-    if(sandbox.tls) {
-        const blob = new Blob([sandbox.cacert], {type: 'text/plain'});
+    if (sandbox.tls) {
+        const blob = new Blob([sandbox.cacert], { type: 'text/plain' });
         caURL = URL.createObjectURL(blob);
     }
 
-    
     return (
-        <>
-            <div className="flex flex-wrap items-center space-x-2">
-                <DatabaseLine label="Host" value={sandbox.host} />
-                <DatabaseLine label="Port" value={sandbox.port.toString()} />
-                <DatabaseLine label="Password" value={sandbox.password} masked="********" />
-                <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked} />
-                {caURL &&
-                    <a download="ca.crt" href={caURL}><u>CA certificate</u></a>
-                }
-                <Dialog>
-                    <DialogTrigger>
-                        <Button className="bg-blue-600 p-2 text-slate-50">
-                            Delete Sandbox
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                            <DialogDescription>
-                                This action cannot be undone. This will permanently delete your sandbox
-                                and remove your data from our servers.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Button className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
-                    </DialogContent>
-                </Dialog>
+        <div className="flex flex-wrap">
+            <div className="flex flex-col space-y-2 m-2">
+                <div className="flex flex-col lg:flex-row lg:space-x-2">
+                    <DatabaseLine label="Host" value={sandbox.host} />
+                    <DatabaseLine label="Port" value={sandbox.port.toString()} />
+                    <DatabaseLine label="Password" value={sandbox.password} masked="********" />
+                </div>
+                <div className="flex flex-col lg:flex-row lg:space-x-2">
+                    <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked} />
+                    {caURL &&
+                        <div className="flex items-center">
+                            <a download="ca.crt" href={caURL}><u>CA certificate</u></a>
+                        </div>
+                    }
+                </div>
+                <div>
+                    <Dialog>
+                        <DialogTrigger>
+                            <Button className="bg-blue-600 p-2 text-slate-50">
+                                Delete Sandbox
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+                                <DialogDescription>
+                                    This action cannot be undone. This will permanently delete your sandbox
+                                    and remove your data from our servers.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Button className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
-        </>
-    );
+            <Tabs defaultValue="javascript" className="bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 p-2 m-2 grow max-w-4xl">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                    <TabsTrigger value="cli">CLI</TabsTrigger>
+                </TabsList>
+                <TabsContent value="javascript">
+                    <SyntaxHighlighter language="javascript" style={dracula}>
+                        {JS_EXAMPLE}
+                    </SyntaxHighlighter>
+                </TabsContent>
+                <TabsContent value="cli">
+                    <SyntaxHighlighter language="bash" style={dracula}>
+                        {BASH_EXAMPLE}
+                    </SyntaxHighlighter>
+                </TabsContent>
+            </Tabs>
+        </div>
+    )
 }

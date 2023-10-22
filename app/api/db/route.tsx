@@ -1,4 +1,4 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable } from "@aws-sdk/client-ecs";
+import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable, CreateServiceCommandInput, RegisterTaskDefinitionCommandInput } from "@aws-sdk/client-ecs";
 import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
 import WebSocket from 'ws';
@@ -47,7 +47,7 @@ async function deleteTaskDefinition(region: Region, taskArn: string): Promise<an
 }
 
 function createTaskDefinition(region: Region, tls: boolean, name: string, password: string): RegisterTaskDefinitionCommand {
-    let params = {
+    let params: RegisterTaskDefinitionCommandInput = {
         "family": name,
         "taskRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
         "executionRoleArn": "arn:aws:iam::119146126346:role/ecsTaskExecutionRole",
@@ -109,7 +109,7 @@ function createTaskDefinition(region: Region, tls: boolean, name: string, passwo
 /// Start an ECS service using a predefined task in an existing cluster.
 /// Use FARGATE_SPOT capacity provider.
 function createService(region: Region, user: string, taskDefinition: string): CreateServiceCommand {
-    let params = {
+    let params: CreateServiceCommandInput = {
         cluster: "falkordb",
         serviceName: `falkordb-${user}`,
         taskDefinition: taskDefinition,
