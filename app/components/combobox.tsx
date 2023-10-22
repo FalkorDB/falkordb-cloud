@@ -75,7 +75,6 @@ export function Combobox( props: {
               <CommandItem
                 key={option}
                 onSelect={(currentValue) => {
-                  console.log("currentValue", currentValue)
                   if (currentValue != props.selectedValue) {
                     props.setSelectedValue(currentValue)
                   }

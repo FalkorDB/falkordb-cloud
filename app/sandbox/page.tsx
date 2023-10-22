@@ -123,7 +123,7 @@ export default function Page() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-screen py-4">
         <main className="flex flex-col flex-1 m-4 w-screen">
-          <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+          <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
               <ChevronsUpDown /> Connection Details
             </CollapsibleTrigger>
@@ -131,7 +131,7 @@ export default function Page() {
               <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
             </CollapsibleContent>
           </Collapsible>
-          <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
+          <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
             <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
               <ChevronsUpDown /> Query Pane
             </CollapsibleTrigger>

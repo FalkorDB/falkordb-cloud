@@ -36,14 +36,14 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     <DatabaseLine label="Password" value={sandbox.password} masked="********" />
                 </div>
                 <div className="flex flex-col lg:flex-row lg:space-x-2">
-                    <DatabaseLine label="Redis URL" value={redisURL} masked={redisURLMasked} />
+                    <DatabaseLine label="Connection URL" value={redisURL} masked={redisURLMasked} />
                     {caURL &&
                         <div className="flex items-center">
                             <a download="ca.crt" href={caURL}><u>CA certificate</u></a>
                         </div>
                     }
                 </div>
-                <div>
+                <div className="">
                     <Dialog>
                         <DialogTrigger>
                             <Button className="bg-blue-600 p-2 text-slate-50">
@@ -63,28 +63,30 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     </Dialog>
                 </div>
             </div>
-            <Tabs defaultValue="javascript" className="bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 p-2 m-2 grow max-w-4xl">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                    <TabsTrigger value="python">Python</TabsTrigger>
-                    <TabsTrigger value="cli">CLI</TabsTrigger>
-                </TabsList>
-                <TabsContent value="javascript">
-                    <SyntaxHighlighter language="javascript" style={dracula}>
-                        {JS_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-                <TabsContent value="python">
-                    <SyntaxHighlighter language="python" style={dracula}>
-                        {PYTHON_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-                <TabsContent value="cli">
-                    <SyntaxHighlighter language="bash" style={dracula}>
-                        {BASH_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-            </Tabs>
+            <div className="max-w-xs lg:max-w-6xl md:max-w-2xl lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
+                <Tabs defaultValue="javascript">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                        <TabsTrigger value="python">Python</TabsTrigger>
+                        <TabsTrigger value="cli">CLI</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="javascript">
+                        <SyntaxHighlighter language="javascript" style={dracula}>
+                            {JS_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                    <TabsContent value="python">
+                        <SyntaxHighlighter language="python" style={dracula}>
+                            {PYTHON_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                    <TabsContent value="cli">
+                        <SyntaxHighlighter language="bash" style={dracula}>
+                            {BASH_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     )
 }
