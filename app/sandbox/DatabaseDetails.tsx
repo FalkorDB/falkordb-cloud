@@ -43,48 +43,50 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                         </div>
                     }
                 </div>
-                <div>
-                    <Dialog>
-                        <DialogTrigger>
-                            <Button className="bg-blue-600 p-2 text-slate-50">
-                                Delete Sandbox
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                                <DialogDescription>
-                                    This action cannot be undone. This will permanently delete your sandbox
-                                    and remove your data from our servers.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <Button className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
-                        </DialogContent>
-                    </Dialog>
-                </div>
             </div>
-            <Tabs defaultValue="javascript" className="bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 p-2 m-2 grow max-w-4xl">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                    <TabsTrigger value="python">Python</TabsTrigger>
-                    <TabsTrigger value="cli">CLI</TabsTrigger>
-                </TabsList>
-                <TabsContent value="javascript">
-                    <SyntaxHighlighter language="javascript" style={dracula}>
-                        {JS_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-                <TabsContent value="python">
-                    <SyntaxHighlighter language="python" style={dracula}>
-                        {PYTHON_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-                <TabsContent value="cli">
-                    <SyntaxHighlighter language="bash" style={dracula}>
-                        {BASH_EXAMPLE}
-                    </SyntaxHighlighter>
-                </TabsContent>
-            </Tabs>
+            <div>
+                <Tabs defaultValue="javascript" className="bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 p-2 m-2 max-w-xs lg:grow lg:max-w-4xl md:max-w-2xl">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                        <TabsTrigger value="python">Python</TabsTrigger>
+                        <TabsTrigger value="cli">CLI</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="javascript">
+                        <SyntaxHighlighter language="javascript" style={dracula}>
+                            {JS_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                    <TabsContent value="python">
+                        <SyntaxHighlighter language="python" style={dracula}>
+                            {PYTHON_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                    <TabsContent value="cli">
+                        <SyntaxHighlighter language="bash" style={dracula}>
+                            {BASH_EXAMPLE}
+                        </SyntaxHighlighter>
+                    </TabsContent>
+                </Tabs>
+            </div>
+            <div className="m-2 p-2">
+                <Dialog>
+                    <DialogTrigger>
+                        <Button className="bg-blue-600 p-2 text-slate-50">
+                            Delete Sandbox
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+                            <DialogDescription>
+                                This action cannot be undone. This will permanently delete your sandbox
+                                and remove your data from our servers.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Button className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
     )
 }
