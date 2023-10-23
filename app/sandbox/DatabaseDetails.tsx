@@ -45,10 +45,8 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                 </div>
                 <div className="">
                     <Dialog>
-                        <DialogTrigger>
-                            <Button className="bg-blue-600 p-2 text-slate-50">
-                                Delete Sandbox
-                            </Button>
+                        <DialogTrigger className="bg-blue-600 p-2 text-slate-50 rounded-md hover:bg-primary/90">
+                            Delete Sandbox
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
