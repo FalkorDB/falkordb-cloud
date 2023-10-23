@@ -29,9 +29,27 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
                 return { result: [] }
             }).then((result) => {
                 setGraphs(result.result.graphs ?? [])
-                setExamples(result.result.examples ?? [])
             })
     }, [toast])
+
+    // Fetch at build time
+    useEffect(() => {
+        fetch('/api/examples', {
+            cache: 'force-cache',
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then((result) => {
+                if (result.status < 300) {
+                    return result.json()
+                }
+                return { result: [] }
+            }).then((result) => {
+                setExamples(result.result.examples ?? [])
+            })
+    }, [])
 
     function addOption(newGraphs: SetStateAction<string[]>) {
         setGraphs(newGraphs)
@@ -54,27 +72,27 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
             return
         }
 
-        fetch('/api/graph', {
+        fetch('/api/examples', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ name: sample })
         })
-        .then((result) => {
-            if (result.status < 300) {
-                return result.json()
-            }
-            toast({
-                title: "Error",
-                description: result.text(),
+            .then((result) => {
+                if (result.status < 300) {
+                    return result.json()
+                }
+                toast({
+                    title: "Error",
+                    description: result.text(),
+                })
+                return { result: [] }
+            }).then((result) => {
+                graphs.push(sample)
+                setGraphs(graphs)
+                setSelectedValue(sample)
             })
-            return { result: [] }
-        }).then((result) => {
-            graphs.push(sample)
-            setGraphs(graphs)
-            setSelectedValue(sample)
-        })
     }
 
     let samples_list = examples.map((sample) => {
@@ -85,7 +103,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
 
     return (
         <>
-            { samples_list.length > 0 && 
+            {samples_list.length > 0 &&
                 <div className='flex flex-wrap space-x-2'>
                     <div className="py-2">Examples:</div>
                     {samples_list}
