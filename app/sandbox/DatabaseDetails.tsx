@@ -9,7 +9,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
-import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE } from "./examples";
+import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE } from "./GettingStrartedExamples";
 
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
