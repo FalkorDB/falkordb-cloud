@@ -9,10 +9,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
-import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE } from "./GettingStrartedExamples";
-
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
+import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE, MORE_EXAMPLE } from "./GettingStrartedExamples";
 
 export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void }) {
 
@@ -63,25 +60,23 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
             </div>
             <div className="max-w-xs lg:max-w-6xl md:max-w-2xl lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
                 <Tabs defaultValue="javascript">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="javascript">JavaScript</TabsTrigger>
                         <TabsTrigger value="python">Python</TabsTrigger>
                         <TabsTrigger value="cli">CLI</TabsTrigger>
+                        <TabsTrigger value="more">More</TabsTrigger>
                     </TabsList>
                     <TabsContent value="javascript">
-                        <SyntaxHighlighter language="javascript" style={dracula}>
-                            {JS_EXAMPLE}
-                        </SyntaxHighlighter>
+                        {JS_EXAMPLE}
                     </TabsContent>
                     <TabsContent value="python">
-                        <SyntaxHighlighter language="python" style={dracula}>
-                            {PYTHON_EXAMPLE}
-                        </SyntaxHighlighter>
+                        {PYTHON_EXAMPLE}
                     </TabsContent>
                     <TabsContent value="cli">
-                        <SyntaxHighlighter language="bash" style={dracula}>
-                            {BASH_EXAMPLE}
-                        </SyntaxHighlighter>
+                        {BASH_EXAMPLE}
+                    </TabsContent>
+                    <TabsContent value="more">
+                        {MORE_EXAMPLE}
                     </TabsContent>
                 </Tabs>
             </div>
