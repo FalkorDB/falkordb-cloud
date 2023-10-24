@@ -4,13 +4,13 @@ import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-
 import WebSocket from 'ws';
 
 import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
-import { getServerSession } from "next-auth/next"
 import { UserEntity } from "../models/entities";
 import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import { REGIONS, Region } from "./regions";
 import { v4 as uuidv4 } from 'uuid';
 import { deleteSandBox } from "./sandbox";
+import { getUser } from "../auth/user";
 
 const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? "";
 
@@ -226,18 +226,6 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
 
 export async function POST(req: NextRequest) {
 
-    // Verify that the user is logged in
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
-    }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    }
-
     const json = await req.json()
     let regionName = json.region
     let tls = json.tls
@@ -249,13 +237,9 @@ export async function POST(req: NextRequest) {
     let manager = await getEntityManager()
     return manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
-        const user = await transactionalEntityManager.findOneBy(UserEntity, {
-            email: email
-        })
-
-        // Each user is allowed to create a single Sandbox
-        if (!user) {
-            return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
+        let user = await getUser(undefined, transactionalEntityManager)
+        if (user instanceof NextResponse) {
+            return user
         }
 
         if (user.task_arn) {
@@ -291,27 +275,12 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
 
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
-    }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    }
-
     let manager = await getEntityManager()
     return await manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
-        let user = await transactionalEntityManager.findOneBy(UserEntity, {
-            email: email
-        })
-
-        // Stop an ECS service using a predefined task in an existing cluster.
-        if (!user) {
-            return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
+        let user = await getUser(undefined, transactionalEntityManager)
+        if (user instanceof NextResponse) {
+            return user
         }
 
         if (!user.task_arn) {
@@ -326,26 +295,14 @@ export async function DELETE() {
 
 export async function GET() {
 
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
-    }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    }
-
     let manager = await getEntityManager()
     return await manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
-        const user = await transactionalEntityManager.findOneBy(UserEntity, {
-            email: email
-        })
-        if (!user) {
-            return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
+        let user = await getUser(undefined, transactionalEntityManager)
+        if (user instanceof NextResponse) {
+            return user
         }
+
         if (!user.task_arn) {
             return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
         }
