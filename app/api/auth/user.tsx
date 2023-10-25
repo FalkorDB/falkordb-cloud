@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { EntityManager } from "typeorm";
 
-export async function getUser(role?: string, transactionalEntityManager?: EntityManager) : Promise<UserEntity | NextResponse>{
+export async function getUser(role?: string, entityManager?: EntityManager) : Promise<UserEntity | NextResponse>{
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -16,7 +16,7 @@ export async function getUser(role?: string, transactionalEntityManager?: Entity
         return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
     }
 
-    let manager = transactionalEntityManager?? await getEntityManager()
+    let manager = entityManager?? await getEntityManager()
     let user = await manager.findOneBy(UserEntity, {
         email, role
     })

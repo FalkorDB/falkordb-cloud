@@ -20,9 +20,8 @@ export async function GET() {
         }).connect()
         : await createClient({
             url: `redis://:${user.db_password}@${user.db_host}:${user.db_port}`
-        }).connect();;
-
-
+        }).connect()
+        
     try {
         let result = await client.graph.list()
         return NextResponse.json({ result: { graphs: result } }, { status: 200 })

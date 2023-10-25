@@ -1,4 +1,3 @@
-import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { getUser } from '@/app/api/auth/user';
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, Graph } from 'redis';
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { graph: s
         }).connect()
         : await createClient({
             url: `redis://:${user.db_password}@${user.db_host}:${user.db_port}`
-        }).connect();;
+        }).connect()
 
     const graph = new Graph(client, params.graph);
 

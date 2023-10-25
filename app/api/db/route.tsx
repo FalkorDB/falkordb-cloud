@@ -1,9 +1,18 @@
-import { ECSClient, InvalidParameterException, CreateServiceCommand, ExecuteCommandCommand, RegisterTaskDefinitionCommand, ListTasksCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, StopTaskCommand, DeleteServiceCommand, DeregisterTaskDefinitionCommand, DeleteTaskDefinitionsCommand, waitUntilServicesStable, CreateServiceCommandInput, RegisterTaskDefinitionCommandInput } from "@aws-sdk/client-ecs";
-import { EC2Client, DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
-import { Route53Client, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
+import { 
+    CreateServiceCommand, 
+    ExecuteCommandCommand, 
+    RegisterTaskDefinitionCommand, 
+    ListTasksCommand, 
+    DescribeTasksCommand, 
+    waitUntilServicesStable, 
+    CreateServiceCommandInput, 
+    RegisterTaskDefinitionCommandInput 
+} from "@aws-sdk/client-ecs";
+import { DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
+import { ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
 import WebSocket from 'ws';
 
-import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
+import { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
 import { UserEntity } from "../models/entities";
 import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";

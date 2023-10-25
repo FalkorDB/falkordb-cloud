@@ -5,12 +5,13 @@ import { getUser } from '../auth/user';
 
 export async function GET() {
 
-    let adminUser = await getUser("admin")
+    let manager = await getEntityManager()
+    
+    let adminUser = await getUser("admin", manager)
     if (adminUser instanceof NextResponse) {
         return adminUser
     }
-
-    let manager = await getEntityManager()
+    
     const users = await manager.find(UserEntity)
     const result = users.map((user) => {
         return {
