@@ -316,37 +316,44 @@ export async function GET() {
             return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
         }
 
-        // Get the region name from the task ARN 
-        // e.g. arn:aws:ecs:eu-north-1:119146126346:task/falkordb/f7fe437eb20e4259b861b4b91899771e
-        const regionName = user.task_arn.split(":")[3]
-        const region = REGIONS.get(regionName)
-        if (!region) {
-            return NextResponse.json({ message: `Task delete failed, can't find region: ${regionName}` }, { status: 500 })
-        }
 
-        try {
-            // Check if task is running
-            await waitForService(region, user, user.task_arn)
-            if (user.db_host == "") {
-                return NextResponse.json({
-                    host: user.db_host,
-                    port: user.db_port,
-                    password: user.db_password,
-                    create_time: user.db_create_time,
-                    cacert: user.cacert,
-                    tls: user.tls,
-                    status: "BUILDING",
-                }, { status: 200 })
+        // Check if task is running and get the public IP address
+        if (!user.db_host ||user.db_host == "") {
+
+            // Get the region name from the task ARN 
+            // e.g. arn:aws:ecs:eu-north-1:119146126346:task/falkordb/f7fe437eb20e4259b861b4b91899771e
+            const regionName = user.task_arn.split(":")[3]
+            const region = REGIONS.get(regionName)
+            if (!region) {
+                return NextResponse.json({ message: `Task Get failed, can't find region: ${regionName}` }, { status: 500 })
             }
-            await transactionalEntityManager.save(user)
-        } catch (err) {
-            // Fatal error in the task 
-            // TODO consider retry on network issues
-            // await cancelTask(taskArn);
-            console.error(err);
-            user.task_arn = null;
-            await transactionalEntityManager.save(user)
-            return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+
+            try {
+                // Check if task is running
+                await waitForService(region, user, user.task_arn)
+
+                // Check if task is running and get the public IP address
+                if (user.db_host == "") {
+                    return NextResponse.json({
+                        host: user.db_host,
+                        port: user.db_port,
+                        password: user.db_password,
+                        create_time: user.db_create_time,
+                        cacert: user.cacert,
+                        tls: user.tls,
+                        status: "BUILDING",
+                    }, { status: 200 })
+                }
+                await transactionalEntityManager.save(user)
+            } catch (err) {
+                // Fatal error in the task 
+                // TODO consider retry on network issues
+                // await cancelTask(taskArn);
+                console.error(err);
+                user.task_arn = null;
+                await transactionalEntityManager.save(user)
+                return NextResponse.json({ message: "Task run failed" }, { status: 500 })
+            }
         }
 
         return NextResponse.json({
