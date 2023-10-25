@@ -134,18 +134,32 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         // Prevent the default browser behavior of reloading the page
         event.preventDefault();
 
-        // If the query is valid, pass it to the parent component as a prop
-        // TODO - add error or Disable button
-        if (valid && selectedGraph) {
-            let newResults: GraphResult = await props.onSubmit(selectedGraph, query);
-            if (!newResults || !newResults.data?.length) {
-                toast({
-                    title: "No results",
-                    description: "The query returned no results",
-                })
-            }
-            setResults(newResults)
+
+        if(!selectedGraph) {
+            toast({
+                title: "No graph selected",
+                description: "Please select a graph from the list",
+            })
+            return
         }
+
+        if(!valid) {
+            toast({
+                title: "Invalid query",
+                description: "Please check the query syntax",
+            })
+            return
+        }
+
+        // If the query is valid, pass it to the parent component as a prop
+        let newResults: GraphResult = await props.onSubmit(selectedGraph, query);
+        if (!newResults || !newResults.data?.length) {
+            toast({
+                title: "No results",
+                description: "The query returned no results",
+            })
+        }
+        setResults(newResults)
     }
 
     // A function that handles the click event of the Graph
