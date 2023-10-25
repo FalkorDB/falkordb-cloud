@@ -356,15 +356,18 @@ export async function GET() {
 
                 // Check if task is running and get the public IP address
                 if (user.db_host == "") {
-                    return NextResponse.json({
-                        host: user.db_host,
-                        port: user.db_port,
-                        password: user.db_password,
-                        create_time: user.db_create_time,
-                        cacert: user.cacert,
-                        tls: user.tls,
+
+                    let sandbox: Sandbox = {
+                        host: user.db_host?? "",
+                        port: user.db_port?? 6379,
+                        password: user.db_password?? "",
+                        username: user.db_username?? "",
+                        create_time: user.db_create_time?.toISOString()?? "",
+                        cacert: user.cacert?? "",
+                        tls: user.tls?? false,
                         status: "BUILDING",
-                    }, { status: 200 })
+                    }
+                    return NextResponse.json(sandbox, { status: 200 })
                 }
 
                 await setAcl(user)
