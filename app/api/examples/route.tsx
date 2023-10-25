@@ -1,10 +1,8 @@
 import fs from 'fs/promises';
-import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import authOptions, { getEntityManager } from '../auth/[...nextauth]/options';
-import { UserEntity } from '../models/entities';
 import { createClient } from 'redis';
+import { getUser } from '../auth/user';
 
 // Load example files
 let _exampleFiles = new Map<string, Buffer>()
@@ -42,21 +40,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions)
 
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
+    let user = await getUser()
+    if (user instanceof NextResponse) {
+        return user
     }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    }
-
-    let manager = await getEntityManager()
-    const user = await manager.findOneBy(UserEntity, {
-        email: email
-    })
 
     const client = user?.tls ?
         await createClient({

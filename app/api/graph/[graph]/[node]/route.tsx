@@ -1,39 +1,26 @@
-import authOptions, { getEntityManager } from '@/app/api/auth/[...nextauth]/options';
-import { UserEntity } from '@/app/api/models/entities';
-import { getServerSession } from "next-auth/next"
+import { getUser } from '@/app/api/auth/user';
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, Graph } from 'redis';
 
 export async function GET(request: NextRequest, { params }: { params: { graph: string, node: string } }) {
 
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
+    let user = await getUser()
+    if (user instanceof NextResponse) {
+        return user
     }
 
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    }
-
-    let manager = await getEntityManager()
-    const user = await manager.findOneBy(UserEntity, {
-        email: email
-    })
-
-    const client = user?.tls ?
+    const client = user.tls ?
         await createClient({
-            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
+            url: `rediss://:${user.db_password}@${user.db_host}:${user.db_port}`,
             socket: {
                 tls: true,
                 rejectUnauthorized: false,
-                ca: user?.cacert ?? ""
+                ca: user.cacert ?? ""
             }
         }).connect()
         : await createClient({
-            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
-        }).connect();;
+            url: `redis://:${user.db_password}@${user.db_host}:${user.db_port}`
+        }).connect()
 
     const graph = new Graph(client, params.graph);
 
