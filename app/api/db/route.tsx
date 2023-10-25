@@ -6,7 +6,9 @@ import {
     DescribeTasksCommand, 
     waitUntilServicesStable, 
     CreateServiceCommandInput, 
-    RegisterTaskDefinitionCommandInput 
+    RegisterTaskDefinitionCommandInput, 
+    DescribeTasksCommandOutput,
+    ListTasksCommandOutput
 } from "@aws-sdk/client-ecs";
 import { DescribeNetworkInterfacesCommand } from "@aws-sdk/client-ec2";
 import { ChangeResourceRecordSetsCommand } from "@aws-sdk/client-route-53";
@@ -111,6 +113,57 @@ function createService(region: Region, user: string, taskDefinition: string): Cr
     return new CreateServiceCommand(params)
 }
 
+async function getCACert(task: DescribeTasksCommandOutput, tasks: ListTasksCommandOutput, region: Region) : Promise<string> {
+    while (task.tasks?.[0].containers?.[0].managedAgents?.[0].lastStatus != "RUNNING") {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        task = await region.ecsClient.send(new DescribeTasksCommand({
+            cluster: "falkordb",
+            tasks: tasks.taskArns ?? [],
+        }))
+    }
+
+    const res = await region.ecsClient.send(new ExecuteCommandCommand({
+        cluster: "falkordb",
+        command: "cat /FalkorDB/tls/ca.crt",
+        interactive: true,
+        task: task.tasks?.[0].taskArn
+    }));
+
+    const ws = new WebSocket(res.session?.streamUrl ?? "");
+
+    const cacert: string = await new Promise((resolve, reject) => {
+        let accdata = ""
+        ws.on('error', reject)
+
+        ws.on('open', function open() {
+            ws.send(JSON.stringify({
+                "MessageSchemaVersion": "1.0",
+                "RequestId": uuidv4(),
+                "TokenValue": res.session?.tokenValue
+            }))
+        })
+
+        ws.on('message', function message(data) {
+            if (data instanceof Buffer) {
+                let n = data.readInt32BE(0)
+                data = data.subarray(4 + n)
+            }
+            accdata += data.toString()
+        })
+
+        ws.on('close', function close() {
+            let sidx = accdata.indexOf("-----BEGIN CERTIFICATE-----")
+            let eidx = accdata.indexOf("-----END CERTIFICATE-----")
+            let cacert = accdata.substring(sidx, eidx + 25)
+            resolve(cacert);
+        })
+    })
+
+    ws.terminate()
+
+    return cacert
+}
+
 async function waitForService(region: Region, user: UserEntity, taskArn: string) : Promise<void> {
     try {
         let waitECSTask = await waitUntilServicesStable(
@@ -133,54 +186,7 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
         }))
 
         if (user.tls) {
-            while (task.tasks?.[0].containers?.[0].managedAgents?.[0].lastStatus != "RUNNING") {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                task = await region.ecsClient.send(new DescribeTasksCommand({
-                    cluster: "falkordb",
-                    tasks: tasks.taskArns ?? [],
-                }))
-            }
-
-            const res = await region.ecsClient.send(new ExecuteCommandCommand({
-                cluster: "falkordb",
-                command: "cat /FalkorDB/tls/ca.crt",
-                interactive: true,
-                task: task.tasks?.[0].taskArn
-            }));
-
-            const ws = new WebSocket(res.session?.streamUrl ?? "");
-
-            const cacert: string = await new Promise((resolve, reject) => {
-                let accdata = "";
-                ws.on('error', reject);
-
-                ws.on('open', function open() {
-                    ws.send(JSON.stringify({
-                        "MessageSchemaVersion": "1.0",
-                        "RequestId": uuidv4(),
-                        "TokenValue": res.session?.tokenValue
-                    }));
-                });
-
-                ws.on('message', function message(data) {
-                    if (data instanceof Buffer) {
-                        let n = data.readInt32BE(0);
-                        data = data.slice(4 + n);
-                    }
-                    accdata += data.toString();
-                });
-
-                ws.on('close', function close() {
-                    let sidx = accdata.indexOf("-----BEGIN CERTIFICATE-----");
-                    let eidx = accdata.indexOf("-----END CERTIFICATE-----");
-                    let cacert = accdata.substring(sidx, eidx + 25);
-                    resolve(cacert);
-                });
-            });
-
-            ws.terminate();
-
-            user.cacert = cacert;
+            user.cacert = await getCACert(task, tasks, region)
         }
 
         const privateIp = task.tasks?.[0].containers?.[0].networkInterfaces?.[0].privateIpv4Address;
