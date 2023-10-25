@@ -121,26 +121,24 @@ export default function Page() {
   // render the sandbox details if exists
   if (sandbox) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen w-screen py-4">
-        <main className="flex flex-col flex-1 m-4 w-screen">
-          <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-            <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
-              <ChevronsUpDown /> Connection Details
-            </CollapsibleTrigger>
-            <CollapsibleContent className="p-2 bg-white rounded-lg">
-              <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
-            </CollapsibleContent>
-          </Collapsible>
-          <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 mx-4 my-2">
-            <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
-              <ChevronsUpDown /> Query Pane
-            </CollapsibleTrigger>
-            <CollapsibleContent className="p-2 bg-white rounded-lg">
-              <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
-            </CollapsibleContent>
-          </Collapsible>
-        </main>
-      </div>
+      <main className="flex flex-col min-h-screen">
+        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
+          <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+            <ChevronsUpDown /> Connection Details
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-2 bg-white rounded-lg">
+            <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
+          </CollapsibleContent>
+        </Collapsible>
+        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
+          <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+            <ChevronsUpDown /> Query Pane
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-2 bg-white rounded-lg">
+            <CypherInput onSubmit={sendQuery} onGraphClick={getNode} />
+          </CollapsibleContent>
+        </Collapsible>
+      </main>
     )
   } else {
     return (

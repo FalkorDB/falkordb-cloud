@@ -53,6 +53,9 @@ export class UserEntity {
   @Column({ type: "varchar", nullable: true })
   db_password!: string | null
 
+  @Column({ type: "varchar", nullable: true })
+  db_username!: string | null
+
   @Column({ type: "timestamptz", nullable: true })
   db_create_time!: Date
 

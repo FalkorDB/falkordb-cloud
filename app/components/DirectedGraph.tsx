@@ -37,8 +37,9 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         layout: "force",
         draggable: true,
         label: {
-          position: 'right',
-          formatter: '{b}'
+          position: 'center',
+          show: true,
+          formatter: '{b}',         
         },
         nodes: nodes,
         edges: edges,
@@ -52,9 +53,8 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         },
         roam: true,
         lineStyle: {
-          width: 0.5,
-          curveness: 0.3,
-          opacity: 0.7
+          width: 3.0,
+          curveness: 0.2,
         },
         dagreLayout: {
           rankdir: 'LR', // Left to right layout
@@ -89,5 +89,5 @@ export function DirectedGraph(
   // }
 
   // return (<ReactEcharts ref={(e) => { onEvents.echartRef = e }} option={getOption(nodes, edges, categories)} onEvents={onEvents} />)
-  return (<ReactEcharts option={getOption(props.nodes, props.edges, props.categories)} />)
+  return (<ReactEcharts className="border" option={getOption(props.nodes, props.edges, props.categories)} />)
 }

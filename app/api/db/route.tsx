@@ -1,12 +1,12 @@
-import { 
-    CreateServiceCommand, 
-    ExecuteCommandCommand, 
-    RegisterTaskDefinitionCommand, 
-    ListTasksCommand, 
-    DescribeTasksCommand, 
-    waitUntilServicesStable, 
-    CreateServiceCommandInput, 
-    RegisterTaskDefinitionCommandInput, 
+import {
+    CreateServiceCommand,
+    ExecuteCommandCommand,
+    RegisterTaskDefinitionCommand,
+    ListTasksCommand,
+    DescribeTasksCommand,
+    waitUntilServicesStable,
+    CreateServiceCommandInput,
+    RegisterTaskDefinitionCommandInput,
     DescribeTasksCommandOutput,
     ListTasksCommandOutput
 } from "@aws-sdk/client-ecs";
@@ -20,10 +20,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { generatePassword } from "./password";
 import { REGIONS, Region } from "./regions";
 import { v4 as uuidv4 } from 'uuid';
-import { deleteSandBox } from "./sandbox";
+import { Sandbox, deleteSandBox } from "./sandbox";
 import { getUser } from "../auth/user";
+import { getClient } from "../graph/client";
+import { USER_ACL_COMMANDS, USER_ACL_KEYS } from "./acl";
 
-const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? "";
+const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? ""
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? ""
+if (ADMIN_PASSWORD == "") {
+    throw new Error("ADMIN_PASSWORD is not defined")
+}
 
 function createTaskDefinition(region: Region, tls: boolean, name: string, password: string): RegisterTaskDefinitionCommand {
     let params: RegisterTaskDefinitionCommandInput = {
@@ -113,7 +119,7 @@ function createService(region: Region, user: string, taskDefinition: string): Cr
     return new CreateServiceCommand(params)
 }
 
-async function getCACert(task: DescribeTasksCommandOutput, tasks: ListTasksCommandOutput, region: Region) : Promise<string> {
+async function getCACert(task: DescribeTasksCommandOutput, tasks: ListTasksCommandOutput, region: Region): Promise<string> {
     while (task.tasks?.[0].containers?.[0].managedAgents?.[0].lastStatus != "RUNNING") {
         await new Promise(resolve => setTimeout(resolve, 1000));
         task = await region.ecsClient.send(new DescribeTasksCommand({
@@ -164,7 +170,7 @@ async function getCACert(task: DescribeTasksCommandOutput, tasks: ListTasksComma
     return cacert
 }
 
-async function waitForService(region: Region, user: UserEntity, taskArn: string) : Promise<void> {
+async function waitForService(region: Region, user: UserEntity, taskArn: string): Promise<void> {
     try {
         let waitECSTask = await waitUntilServicesStable(
             { client: region.ecsClient, maxWaitTime: 5, minDelay: 1 },
@@ -239,6 +245,19 @@ async function waitForService(region: Region, user: UserEntity, taskArn: string)
     }
 }
 
+
+async function setAcl(user: UserEntity) {
+
+    let client = await getClient(user)
+    const password = generatePassword(32);
+
+    // TODO use other username for ACL
+    await client.aclSetUser("falkordb", ["on", `>${password}`, ...USER_ACL_KEYS, ...USER_ACL_COMMANDS])
+
+    user.db_password = password
+    user.db_username = "falkordb"
+}
+
 export async function POST(req: NextRequest) {
 
     const json = await req.json()
@@ -261,9 +280,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Sandbox already exits" }, { status: 409 })
         }
 
-        const password = generatePassword(32);
-
-        let task = createTaskDefinition(region, tls, `falkordb-${user.id}`, password)
+        let task = createTaskDefinition(region, tls, `falkordb-${user.id}`, ADMIN_PASSWORD)
         const taskData = await region.ecsClient.send(task);
 
         // Start an ECS service using a predefined task in an existing cluster.
@@ -279,7 +296,6 @@ export async function POST(req: NextRequest) {
         user.task_arn = taskArn;
         user.db_host = "";
         user.db_port = 6379;
-        user.db_password = password;
         user.db_create_time = new Date();
         user.tls = tls;
 
@@ -324,7 +340,7 @@ export async function GET() {
 
 
         // Check if task is running and get the public IP address
-        if (!user.db_host ||user.db_host == "") {
+        if (!user.db_host || user.db_host == "") {
 
             // Get the region name from the task ARN 
             // e.g. arn:aws:ecs:eu-north-1:119146126346:task/falkordb/f7fe437eb20e4259b861b4b91899771e
@@ -350,6 +366,9 @@ export async function GET() {
                         status: "BUILDING",
                     }, { status: 200 })
                 }
+
+                await setAcl(user)
+
                 await transactionalEntityManager.save(user)
             } catch (err) {
                 // Fatal error in the task 
@@ -362,14 +381,17 @@ export async function GET() {
             }
         }
 
-        return NextResponse.json({
-            host: user.db_host,
-            port: user.db_port,
-            password: user.db_password,
-            create_time: user.db_create_time,
-            cacert: user.cacert,
-            tls: user.tls,
+        let sandbox: Sandbox = {
+            host: user.db_host?? "",
+            port: user.db_port?? 6379,
+            password: user.db_password?? "",
+            username: user.db_username?? "",
+            create_time: user.db_create_time?.toISOString()?? "",
+            cacert: user.cacert?? "",
+            tls: user.tls?? false,
             status: "READY",
-        }, { status: 200 })
+        }
+
+        return NextResponse.json(sandbox, { status: 200 })
     })
 }

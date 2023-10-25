@@ -2,6 +2,12 @@ import { RedisClientType, RedisDefaultModules, createClient } from "redis";
 import { UserEntity } from "../models/entities";
 import { LRUCache } from 'lru-cache'
 
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? ""
+if (ADMIN_PASSWORD == "") {
+    throw new Error("ADMIN_PASSWORD is not defined")
+}
+
 const options = {
     
     max: 50,
@@ -31,7 +37,7 @@ export async function getClient(user: UserEntity) : Promise<RedisClientType<Redi
 
     const client = user.tls ?
         await createClient({
-            url: `rediss://:${user.db_password}@${user.db_host}:${user.db_port}`,
+            url: `rediss://:${ADMIN_PASSWORD}@${user.db_host}:${user.db_port}`,
             socket: {
                 tls: true,
                 rejectUnauthorized: false,
@@ -39,7 +45,7 @@ export async function getClient(user: UserEntity) : Promise<RedisClientType<Redi
             }
         }).connect()
         : await createClient({
-            url: `redis://:${user.db_password}@${user.db_host}:${user.db_port}`
+            url: `redis://:${ADMIN_PASSWORD}@${user.db_host}:${user.db_port}`
         }).connect()
 
     cache.set(user.id, client as RedisClientType<RedisDefaultModules>)
