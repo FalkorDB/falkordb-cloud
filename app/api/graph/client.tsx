@@ -9,46 +9,67 @@ if (ADMIN_PASSWORD == "") {
 }
 
 const options = {
-    
+
     max: 50,
-  
+
     // for use when you need to clean up something when objects
     // are evicted from the cache
     dispose: (value: RedisClientType<any>, key: string) => {
         value.disconnect()
     },
-  
+
     // 6min in ms
     ttl: 1000 * 60 * 5,
-   
+
     updateAgeOnGet: true,
     updateAgeOnHas: true,
 }
-  
+
 const cache = new LRUCache<string, RedisClientType<RedisDefaultModules>>(options)
 
 
-export async function getClient(user: UserEntity) : Promise<RedisClientType<RedisDefaultModules>>{
+export async function getClient(user: UserEntity): Promise<RedisClientType<RedisDefaultModules>> {
 
-    const cachedClient = cache.get(user.id)
+    const userID = user.id;
+    const cachedClient = cache.get(userID)
     if (cachedClient) {
         return cachedClient
     }
 
     const client = user.tls ?
-        await createClient({
-            url: `rediss://:${ADMIN_PASSWORD}@${user.db_host}:${user.db_port}`,
+        createClient({
+            disableOfflineQueue: true,
+            password: ADMIN_PASSWORD,
             socket: {
+                host: user.db_host?? "localhost",
+                port: user.db_port?? 6379,
                 tls: true,
                 rejectUnauthorized: false,
                 ca: user?.cacert ?? ""
             }
-        }).connect()
-        : await createClient({
-            url: `redis://:${ADMIN_PASSWORD}@${user.db_host}:${user.db_port}`
-        }).connect()
+        })
+        : createClient({
+            disableOfflineQueue: true,
+            password: ADMIN_PASSWORD,
+            socket: {
+                host: user.db_host?? "localhost",
+                port: user.db_port?? 6379,
+            }
+        })
 
-    cache.set(user.id, client as RedisClientType<RedisDefaultModules>)
+    await client
+        .on('error', err => {
+            // On error remove from cache
+            console.warn('Redis Client Error', err)
+            let cached = cache.get(userID);
+            if(cached) {
+                cache.delete(userID)
+                cached.quit()
+            }
+        })
+        .connect()
+
+    cache.set(userID, client as RedisClientType<RedisDefaultModules>)
 
     return client as RedisClientType<RedisDefaultModules>
 }

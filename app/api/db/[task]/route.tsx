@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserEntity } from "@/app/api/models/entities";
-import { deleteSandBox } from "../sandbox";
 import { getUser } from "../../auth/user";
 import { getEntityManager } from "../../auth/[...nextauth]/options";
+import { deleteSandBox } from "../service";
 
 export async function DELETE(request: NextRequest, { params }: { params: { task: string } }) {
 
