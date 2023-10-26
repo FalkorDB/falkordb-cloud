@@ -27,6 +27,8 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@sentry/nextjs": "^7.74.0",
     "@tanstack/react-table": "^8.10.6",
+    "aws-crt": "^1.18.2",
+    "bufferutil": "^4.0.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
@@ -45,6 +47,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "typeorm": "^0.3.17",
+    "utf-8-validate": "^6.0.3",
     "uuid": "^9.0.1",
     "ws": "^8.14.2"
   },

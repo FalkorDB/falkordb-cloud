@@ -1,7 +1,15 @@
 /** @type {import('next').NextConfig} */
+
+const webpack = require('webpack');
+
 const nextConfig = {
     images : {
         unoptimized: true,
+    },
+    // Workaround to avoid all the webpack error messages when using typeorm
+    // https://github.com/typeorm/typeorm/issues/10047#issuecomment-1627682171
+    experimental: {
+      serverComponentsExternalPackages: ["typeorm"],
     },
 }
 

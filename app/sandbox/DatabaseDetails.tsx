@@ -14,14 +14,16 @@ import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE, MORE_EXAMPLE } from "./Gettin
 export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void }) {
 
     let sandbox = props.sandbox
-    let redisURL = `rediss://${sandbox.username}:${sandbox.password}@${sandbox.host}:${sandbox.port}`
-    let redisURLMasked = `rediss://${sandbox.username}:********@${sandbox.host}:${sandbox.port}`
-
     let caURL = null;
+    let protocol = 'redis'
     if (sandbox.tls) {
         const blob = new Blob([sandbox.cacert], { type: 'text/plain' });
         caURL = URL.createObjectURL(blob);
+        protocol = 'rediss'
     }
+
+    let redisURL = `${protocol}://${sandbox.username}:${sandbox.password}@${sandbox.host}:${sandbox.port}`
+    let redisURLMasked = `${protocol}://${sandbox.username}:********@${sandbox.host}:${sandbox.port}`
 
     return (
         <div className="flex flex-wrap">
