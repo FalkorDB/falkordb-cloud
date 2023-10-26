@@ -55,7 +55,7 @@ export function GraphsList(props: { onSelectedGraph: Dispatch<SetStateAction<str
     return (
         <>
             <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
+                <AccordionItem value="item-1" className="border-b-0">
                     <AccordionTrigger>
                         <div className="bg-gray-200 rounded-lg border border-gray-300 p-2 ">Load example Data</div>
                     </AccordionTrigger>

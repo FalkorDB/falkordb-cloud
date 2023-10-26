@@ -76,7 +76,7 @@ graph.query("MATCH (n)-[:ACTED_IN]->(m:Movie {title:'Top Gun'}) RETURN n LIMIT 1
 
 export const MORE_EXAMPLE  = (
    <div> 
-      You can find a llist of more ways to connect FalkorDB in different <a target="_blank" className="underline text-blue-600" href="https://docs.falkordb.com/clients.html">programming languages</a>.
+      You can find a list of more ways to connect FalkorDB in different <a target="_blank" className="underline text-blue-600" href="https://docs.falkordb.com/clients.html">programming languages</a>.
       Including Java, .NET, PHP, Rust and more...
    </div>
 )
