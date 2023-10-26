@@ -225,11 +225,10 @@ export async function waitForService(region: Region, user: UserEntity, taskArn: 
         user.db_host = dns;
         return;
     } catch (err: any) {
-        console.log(`waitForService error: ${err.name} ${err.message}`)
-
         if (err.name === "TimeoutError") {
             return;
         }
+        console.error(`waitForService error: ${err.name} ${err.message}`)
         throw err;
     }
 }

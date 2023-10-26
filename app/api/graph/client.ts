@@ -41,7 +41,7 @@ export async function getClient(user: UserEntity): Promise<RedisClientType<Redis
             disableOfflineQueue: true,
             password: ADMIN_PASSWORD,
             socket: {
-                host: user.db_host?? "localhost",
+                host: user.db_ip?? "localhost",
                 port: user.db_port?? 6379,
                 tls: true,
                 rejectUnauthorized: false,
@@ -52,7 +52,7 @@ export async function getClient(user: UserEntity): Promise<RedisClientType<Redis
             disableOfflineQueue: true,
             password: ADMIN_PASSWORD,
             socket: {
-                host: user.db_host?? "localhost",
+                host: user.db_ip?? "localhost",
                 port: user.db_port?? 6379,
             }
         })
