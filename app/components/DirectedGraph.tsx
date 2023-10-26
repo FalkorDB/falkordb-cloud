@@ -47,7 +47,7 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         emphasis: {
           focus: 'adjacency',
           label: {
-            position: 'left',
+            position: 'right',
             show: true
           }
         },
