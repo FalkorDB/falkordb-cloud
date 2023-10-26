@@ -14,7 +14,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 function SortColumn(props: { column: Column<any, unknown> }) {
   return (
@@ -94,18 +104,21 @@ export default function Columns(columns: string[], actions?: Action[]): ColumnDe
                         // Prevents the dropdown from closing when the user clicks on the button
                         // Source: https://github.com/radix-ui/primitives/issues/1836#issuecomment-1750968835
                         <DropdownMenuItem key={action.name} onSelect={(e) => e.preventDefault()}>
-                          <Dialog>
-                            <DialogTrigger>{action.name}</DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                                <DialogDescription>
+                          <AlertDialog>
+                            <AlertDialogTrigger>{action.name}</AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
                                   {action.warning}
-                                </DialogDescription>
-                              </DialogHeader>
-                              <Button className="bg-blue-600 p-4 text-slate-50" onClick={(event) => action.onAction(row)}>{action.name}</Button>
-                            </DialogContent>
-                          </Dialog>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-blue-600 p-4 text-slate-50">Cancel</AlertDialogCancel>
+                                <AlertDialogAction className="bg-blue-600 p-4 text-slate-50" onClick={(event) => action.onAction(row)}>{action.name}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </DropdownMenuItem>
                       )
                     } else {

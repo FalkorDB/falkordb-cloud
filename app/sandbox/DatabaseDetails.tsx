@@ -1,5 +1,14 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { DatabaseLine } from "./DatabaseLine";
 import {
@@ -41,21 +50,22 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     }
                 </div>
                 <div className="">
-                    <Dialog>
-                        <DialogTrigger className="bg-blue-600 p-2 text-slate-50 rounded-md hover:bg-primary/90">
-                            Delete Sandbox
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                                <DialogDescription>
+                    <AlertDialog>
+                        <AlertDialogTrigger className="bg-blue-600 p-2 text-slate-50 rounded-md hover:bg-primary/90">Delete Sandbox</AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
                                     This action cannot be undone. This will permanently delete your sandbox
                                     and remove your data from our servers.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <Button className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</Button>
-                        </DialogContent>
-                    </Dialog>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-blue-600 p-4 text-slate-50">Cancel</AlertDialogCancel>
+                                <AlertDialogAction className="bg-blue-600 p-4 text-slate-50" onClick={props.onDelete}>Delete Sandbox</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
             <div className="max-w-xs lg:max-w-none lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
