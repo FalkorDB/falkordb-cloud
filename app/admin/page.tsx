@@ -6,18 +6,8 @@ import useSWR from 'swr'
 import { useState } from "react";
 import Spinning from "../components/spinning";
 import { Row } from "@tanstack/react-table";
+import { User } from "../api/user/user";
 
-
-interface User {
-  id: string,
-  name: string
-  email: string
-  db_host: string,
-  db_port: number,
-  db_create_time: string,
-  tls: string,
-  task_arn: string,     
-}
 
 function getUsers(props: {pageIndex:number}): Promise<User[]> {
   return fetch('/api/user', {
@@ -86,7 +76,7 @@ export default function Page() {
             (error || !data) ? 
             <div>failed to load</div> :
             <DataTable rows={data} 
-            columnNames={["email", "id", "name", "db_host", "db_port", "db_create_time", "tls", "task_arn"]}
+            columnNames={["email", "id", "name", "db_host", "db_ip", "db_port", "db_create_time", "tls", "task_arn"]}
             actions={[
               { name: "Delete Sandbox", onAction:deleteSandbox, warning:"This action cannot be undone. This will permanently delete your sandbox and remove the data from our servers." },
             ]}

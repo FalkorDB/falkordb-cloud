@@ -7,6 +7,7 @@ import { Category, DirectedGraph, GraphData, GraphLink } from '../components/Dir
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
 import { toast } from '@/components/ui/use-toast';
+import { Separator } from "@/components/ui/separator"
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -173,27 +174,29 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
     let extracted = extractData(results)
 
     return (
-        <>
-            <div className='flex flex-wrap space-x-2'>
+        <div className="flex flex-col">
+            <div className="flex flex-wrap space-x-2">
                 <GraphsList onSelectedGraph={setSelectedGraph} />
                 <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
                     <Label htmlFor="cypher">Query:</Label>
-                    <Input className='w-[50vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
+                    <Input className='xl:w-[70vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
                     <Button className="bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
                 </form>
             </div>
             {/* Show an error message if the query is invalid */}
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
             {extracted.data.length > 0 && (
-                <Tabs defaultValue="table" className="w-full py-2">
-                    <TabsList>
-                        <TabsTrigger value="table">Data</TabsTrigger>
-                        <TabsTrigger value="graph">Graph</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="table"><DataTable rows={extracted.data} columnNames={extracted.columns} /></TabsContent>
-                    <TabsContent value="graph"><DirectedGraph nodes={extracted.nodes} edges={extracted.edges} categories={extracted.categories} onChartClick={handleGraphClick} /></TabsContent>
-                </Tabs>
+                <>
+                    <Tabs defaultValue="table" className="w-full grow py-2">
+                        <TabsList>
+                            <TabsTrigger value="table">Data</TabsTrigger>
+                            <TabsTrigger value="graph">Graph</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="table"><DataTable rows={extracted.data} columnNames={extracted.columns} /></TabsContent>
+                        <TabsContent value="graph"><DirectedGraph nodes={extracted.nodes} edges={extracted.edges} categories={extracted.categories} onChartClick={handleGraphClick} /></TabsContent>
+                    </Tabs>
+                </>
             )}
-        </>
+        </div>
     )
 }

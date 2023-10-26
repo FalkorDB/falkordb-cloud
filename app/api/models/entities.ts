@@ -47,14 +47,20 @@ export class UserEntity {
   @Column({ type: "varchar", nullable: true })
   db_host!: string | null
 
+  @Column({ type: "varchar", nullable: true })
+  db_ip!: string | null
+
   @Column({ type: "int", nullable: true })
   db_port!: number | null
 
   @Column({ type: "varchar", nullable: true })
   db_password!: string | null
 
+  @Column({ type: "varchar", nullable: true })
+  db_username!: string | null
+
   @Column({ type: "timestamptz", nullable: true })
-  db_create_time!: Date
+  db_create_time!: Date | null
 
   @Column({ type: "varchar", nullable: true })
   task_arn!: string | null

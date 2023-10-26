@@ -1,10 +1,9 @@
 import fs from 'fs/promises';
-import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import authOptions, { getEntityManager } from '../auth/[...nextauth]/options';
-import { UserEntity } from '../models/entities';
 import { createClient } from 'redis';
+import { getUser } from '../auth/user';
+import { getClient } from '../graph/client';
 
 // Load example files
 let _exampleFiles = new Map<string, Buffer>()
@@ -42,34 +41,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions)
 
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
+    let user = await getUser()
+    if (user instanceof NextResponse) {
+        return user
     }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Can't find user details" }, { status: 500 })
-    }
-
-    let manager = await getEntityManager()
-    const user = await manager.findOneBy(UserEntity, {
-        email: email
-    })
-
-    const client = user?.tls ?
-        await createClient({
-            url: `rediss://:${user?.db_password}@${user?.db_host}:${user?.db_port}`,
-            socket: {
-                tls: true,
-                rejectUnauthorized: false,
-                ca: user?.cacert ?? ""
-            }
-        }).connect()
-        : await createClient({
-            url: `redis://:${user?.db_password}@${user?.db_host}:${user?.db_port}`
-        }).connect()
 
     let body = await req.json()
     const name = body.name
@@ -80,6 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+        const client = await getClient(user)
         await client.restore(name, 0, buffer, { REPLACE: true });
         return NextResponse.json({ result: name }, { status: 200 })
     } catch (err) {

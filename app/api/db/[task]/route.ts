@@ -1,35 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import authOptions, { getEntityManager } from "@/app/api/auth/[...nextauth]/options";
-import { getServerSession } from "next-auth";
 import { UserEntity } from "@/app/api/models/entities";
-import { REGIONS } from "../regions";
-import { deleteSandBox } from "../sandbox";
+import { getUser } from "../../auth/user";
+import { getEntityManager } from "../../auth/[...nextauth]/options";
+import { deleteSandBox } from "../service";
 
 export async function DELETE(request: NextRequest, { params }: { params: { task: string } }) {
-
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-        return NextResponse.json({ message: "You must be logged in." }, { status: 401 })
-    }
-
-    const email = session.user?.email;
-    if (!email) {
-        return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
-    }
 
     let manager = await getEntityManager()
     return await manager.transaction("SERIALIZABLE", async (transactionalEntityManager) => {
 
-        let user: UserEntity | null = await transactionalEntityManager.findOneBy(UserEntity, {
-            email: email
-        })
-
-        // Stop an ECS service using a predefined task in an existing cluster.
-        if (!user) {
-            return NextResponse.json({ message: "Task run failed, can't find user details" }, { status: 500 })
+        let res = await getUser(undefined, transactionalEntityManager)
+        if (res instanceof NextResponse) {
+            return res
         }
 
+        let user: UserEntity | null = res;
         // If the user is admin, we can delete any sandbox
         if(user.role === 'admin') {
 
