@@ -99,6 +99,8 @@ function extractData(results: GraphResult | null) : ExtractedData {
     return { data, columns, categories, nodes, edges}
 }
 
+const QUERY_PLACE_HOLDER = "MATCH (s)-[e]-(t) return s,e,t limit 100"
+
 // A component that renders an input box for Cypher queries
 export function CypherInput(props: { onSubmit: (graph: string, query: string) => Promise<any>, onGraphClick: (graph: string, id: number) => Promise<any> }) {
 
@@ -153,7 +155,8 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         }
 
         // If the query is valid, pass it to the parent component as a prop
-        let newResults: GraphResult = await props.onSubmit(selectedGraph, query);
+        let q = query.length ? query : QUERY_PLACE_HOLDER
+        let newResults: GraphResult = await props.onSubmit(selectedGraph, q);
         if (!newResults || !newResults.data?.length) {
             toast({
                 title: "No results",
@@ -179,7 +182,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
                 <GraphsList onSelectedGraph={setSelectedGraph} />
                 <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
                     <Label htmlFor="cypher">Query:</Label>
-                    <Input className='xl:w-[70vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
+                    <Input placeholder={QUERY_PLACE_HOLDER} className='xl:w-[70vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
                     <Button className="bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
                 </form>
             </div>
