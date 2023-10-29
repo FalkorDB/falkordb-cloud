@@ -66,15 +66,32 @@ function extractData(results: GraphResult | null) : ExtractedData {
 
     let nodesMap = new Map<number, GraphData>();
     let categoriesMap = new Map<String, Category>();
-    let nodes: GraphData[] = []
+    categoriesMap.set("default", { name: "default", index: 0})
+    let categories: Category[] = [{ name: "default", index: 0}]
+
     let edges: GraphLink[] = []
-    let categories: Category[] = []
 
     data.forEach((row: any[]) => {
         Object.values(row).forEach((cell: any) => {
             if (cell instanceof Object) {
                 if (cell.relationshipType) {
-                    edges.push({ source: cell.sourceId.toString(), target: cell.destinationId.toString() })
+
+                    let sourceId = cell.sourceId.toString();
+                    let destinationId = cell.destinationId.toString()
+                    edges.push({ source: sourceId, target: destinationId })
+
+                    // creates a fakeS node for the source and target
+                    let source = nodesMap.get(cell.sourceId)
+                    if(!source) {
+                        source = { id: cell.sourceId.toString(), name: cell.sourceId.toString(), value: "", category: 0 }
+                        nodesMap.set(cell.sourceId, source)
+                    }
+
+                    let destination = nodesMap.get(cell.destinationId)
+                    if(!destination) {
+                        destination = { id: cell.destinationId.toString(), name: cell.destinationId.toString(), value: "", category: 0 }
+                        nodesMap.set(cell.destinationId, destination)
+                    }
                 } else if (cell.labels) {
 
                     // check if category already exists in categories
@@ -85,19 +102,22 @@ function extractData(results: GraphResult | null) : ExtractedData {
                         categories.push(category)
                     }
 
-                    // check if node already exists in nodes
+                    // check if node already exists in nodes or fake node was created
                     let node = nodesMap.get(cell.id)
-                    if (!node) {
+                    if (!node || node.value === "") {
                         node = { id: cell.id.toString(), name: cell.id.toString(), value: JSON.stringify(cell), category: category.index }
                         nodesMap.set(cell.id, node)
-                        nodes.push(node)
                     }
                 }
             }
         })
     })
+
+    let nodes: GraphData[] = Array.from(nodesMap.values())
     return { data, columns, categories, nodes, edges}
 }
+
+const QUERY_PLACE_HOLDER = "MATCH (s)-[e]-(t) return s,e,t limit 100"
 
 // A component that renders an input box for Cypher queries
 export function CypherInput(props: { onSubmit: (graph: string, query: string) => Promise<any>, onGraphClick: (graph: string, id: number) => Promise<any> }) {
@@ -153,7 +173,8 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         }
 
         // If the query is valid, pass it to the parent component as a prop
-        let newResults: GraphResult = await props.onSubmit(selectedGraph, query);
+        let q = query.length ? query : QUERY_PLACE_HOLDER
+        let newResults: GraphResult = await props.onSubmit(selectedGraph, q);
         if (!newResults || !newResults.data?.length) {
             toast({
                 title: "No results",
@@ -173,21 +194,24 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
 
     let extracted = extractData(results)
 
+    // If the result holds data to present in the graph tab, set it as the default tab
+    const defaultTab =  (extracted.nodes.length > 0 || extracted.edges.length > 0) ? "graph" : "table"
+
     return (
         <div className="flex flex-col">
             <div className="flex flex-wrap space-x-2">
                 <GraphsList onSelectedGraph={setSelectedGraph} />
-                <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
+                <form className="grow flex flex-row items-center space-x-2" onSubmit={handleSubmit}>
                     <Label htmlFor="cypher">Query:</Label>
-                    <Input className='xl:w-[70vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
-                    <Button className="bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
+                    <Input className="grow" placeholder={QUERY_PLACE_HOLDER} type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
+                    <Button className=" bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
                 </form>
             </div>
             {/* Show an error message if the query is invalid */}
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
             {extracted.data.length > 0 && (
                 <>
-                    <Tabs defaultValue="table" className="w-full grow py-2">
+                    <Tabs defaultValue={defaultTab} className="w-full grow py-2">
                         <TabsList>
                             <TabsTrigger value="table">Data</TabsTrigger>
                             <TabsTrigger value="graph">Graph</TabsTrigger>

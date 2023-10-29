@@ -8,7 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog"
 import { Sandbox } from "@/app/api/db/sandbox";
 import { DatabaseLine } from "./DatabaseLine";
 import {
@@ -41,14 +41,12 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                 <DatabaseLine label="Port" value={sandbox.port.toString()} />
                 <DatabaseLine label="Username" value={sandbox.username} />
                 <DatabaseLine label="Password" value={sandbox.password} masked="********" />
-                <div className="flex flex-col lg:flex-row lg:space-x-2">
-                    <DatabaseLine label="Connection URL" value={redisURL} masked={redisURLMasked} />
-                    {caURL &&
-                        <div className="flex items-center">
-                            <a download="ca.crt" href={caURL}><u>CA certificate</u></a>
-                        </div>
-                    }
-                </div>
+                <DatabaseLine label="Connection URL" value={redisURL} masked={redisURLMasked} />
+                {caURL &&
+                    <div className="flex items-center">
+                        <a download="ca.crt" href={caURL}><u>Download CA certificate</u></a>
+                    </div>
+                }
                 <div className="">
                     <AlertDialog>
                         <AlertDialogTrigger className="bg-blue-600 p-2 text-slate-50 rounded-md hover:bg-primary/90">Delete Sandbox</AlertDialogTrigger>
@@ -68,7 +66,7 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
                     </AlertDialog>
                 </div>
             </div>
-            <div className="max-w-xs lg:max-w-none lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
+            <div className="max-w-xs lg:max-w-4xl lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
                 <Tabs defaultValue="javascript">
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="javascript">JavaScript</TabsTrigger>
