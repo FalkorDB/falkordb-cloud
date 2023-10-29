@@ -201,10 +201,10 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
         <div className="flex flex-col">
             <div className="flex flex-wrap space-x-2">
                 <GraphsList onSelectedGraph={setSelectedGraph} />
-                <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
+                <form className="grow flex flex-row items-center space-x-2" onSubmit={handleSubmit}>
                     <Label htmlFor="cypher">Query:</Label>
-                    <Input placeholder={QUERY_PLACE_HOLDER} className='xl:w-[70vw] md:w-[40vw]' type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
-                    <Button className="bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
+                    <Input className="grow" placeholder={QUERY_PLACE_HOLDER} type="text" id="cypher" name="cypher" value={query} onChange={handleChange} />
+                    <Button className=" bg-blue-600 p-2 text-slate-50" type="submit">Send</Button>
                 </form>
             </div>
             {/* Show an error message if the query is invalid */}
