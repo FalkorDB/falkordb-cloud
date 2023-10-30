@@ -31,6 +31,14 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         })
       }
     ],
+
+    toolbox: {
+      show: true,
+      feature: {
+        restore: {},
+        saveAsImage: {}
+      }
+    },
     series: [
       {
         type: "graph",
