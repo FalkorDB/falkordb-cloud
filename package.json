@@ -28,7 +28,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@sentry/nextjs": "^7.75.1",
     "@tanstack/react-table": "^8.10.6",
-    "aws-crt": "^1.18.2",
+    "aws-crt": "^1.18.3",
     "bufferutil": "^4.0.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
