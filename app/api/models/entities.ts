@@ -18,7 +18,7 @@ const transformer: Record<"date" | "bigint", ValueTransformer> = {
   },
 }
 
-@Entity({ name: "users" })
+@Entity("UserEntity", { name: "users" })
 export class UserEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string
@@ -72,7 +72,7 @@ export class UserEntity {
   tls: boolean | null = false
 }
 
-@Entity({ name: "accounts" })
+@Entity("AccountEntity", { name: "accounts" })
 export class AccountEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string
@@ -126,7 +126,7 @@ export class AccountEntity {
   user!: UserEntity
 }
 
-@Entity({ name: "sessions" })
+@Entity("SessionEntity", { name: "sessions" })
 export class SessionEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string
@@ -144,7 +144,7 @@ export class SessionEntity {
   user!: UserEntity
 }
 
-@Entity({ name: "verification_tokens" })
+@Entity("VerificationTokenEntity", { name: "verification_tokens" })
 export class VerificationTokenEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string
