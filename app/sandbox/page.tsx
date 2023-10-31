@@ -10,6 +10,7 @@ import { LoadingState, State } from "./LoadingState";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronsUpDown } from "lucide-react"
 import { Create } from "./Create";
+import { Monitor } from "./Monitor";
 
 export default function Page() {
   const [retry_count, retry] = useState(0)
@@ -122,16 +123,24 @@ export default function Page() {
   if (sandbox) {
     return (
       <main className="flex flex-col min-h-screen">
-        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
-          <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+        <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+          <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
             <ChevronsUpDown /> Connection Details
           </CollapsibleTrigger>
           <CollapsibleContent className="p-2 bg-white rounded-lg">
             <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-2">
-          <CollapsibleTrigger className="flex flex-row m-2 space-x-2">
+        <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+          <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
+            <ChevronsUpDown /> Monitor
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-2 bg-white rounded-lg">
+            <Monitor/>
+          </CollapsibleContent>
+        </Collapsible>
+        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+          <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
             <ChevronsUpDown /> Query Pane
           </CollapsibleTrigger>
           <CollapsibleContent className="p-2 bg-white rounded-lg">
