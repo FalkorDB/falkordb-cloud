@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Monitor } from "./monitor";
 import { DescribeTasksCommand, ListTasksCommand, waitUntilServicesStable } from '@aws-sdk/client-ecs';
-import { CloudWatchClient, GetMetricStatisticsCommand, Statistic } from '@aws-sdk/client-cloudwatch';
+import { CloudWatchClient, GetMetricStatisticsCommand, GetMetricStatisticsCommandOutput, Statistic } from '@aws-sdk/client-cloudwatch';
 import { getUser } from "../../auth/user";
 import { REGIONS, Region } from "../regions";
 import { UserEntity } from "../../models/entities";
@@ -31,14 +31,6 @@ async function getMetricStatistics(cwClient: CloudWatchClient, namespace: string
   return response;
 };
 
-// Define a helper function to format and display the metric data
-const displayMetricData = (metricName: string, dataPoints: any[]) => {
-  console.log(`\n${metricName}:`);
-  for (const dataPoint of dataPoints) {
-    console.log(`${dataPoint.Timestamp.toISOString()} - ${dataPoint.Average}`);
-  }
-};
-
 // Define the main function to monitor the ECS task
 async function monitorECSTask(region: Region, user: UserEntity, serviceArn: string) {
   try {
@@ -48,8 +40,8 @@ async function monitorECSTask(region: Region, user: UserEntity, serviceArn: stri
     const startTime = new Date(endTime.getTime() - 3600 * 1000); // One hour ago
     const period = 60; // One minute
 
-    // Get the CPU utilization metric for the container instance
-    const cpuUtilizationData = await getMetricStatistics(region.cwClient,
+    // Get the CPU utilization
+    const cpuUtilizationData : GetMetricStatisticsCommandOutput = await getMetricStatistics(region.cwClient,
       'AWS/ECS',
       'CPUUtilization',
       [{ Name: 'ClusterName', Value: 'falkordb' }, { Name: 'ServiceName', Value: `falkordb-${user.id}` }],
@@ -59,8 +51,8 @@ async function monitorECSTask(region: Region, user: UserEntity, serviceArn: stri
       ['Average']
     );
 
-    // Get the memory utilization metric for the container instance
-    const memoryUtilizationData = await getMetricStatistics(region.cwClient,
+    // Get the memory utilization
+    const memoryUtilizationData : GetMetricStatisticsCommandOutput = await getMetricStatistics(region.cwClient,
       'AWS/ECS',
       'MemoryUtilization',
       [{ Name: 'ClusterName', Value: 'falkordb' }, { Name: 'ServiceName', Value: `falkordb-${user.id}` }],
@@ -70,36 +62,9 @@ async function monitorECSTask(region: Region, user: UserEntity, serviceArn: stri
       ['Average']
     );
 
-    // Get the network in metric for the container
-    // const networkInData = await getMetricStatistics(region.cwClient,
-    //   'AWS/ECS',
-    //   'NetworkRxBytes',
-    //   [{ Name: 'ClusterName', Value: 'falkordb' }, { Name: 'TaskId', Value: tasks.taskArns }, { Name: 'ContainerName', Value: container }],
-    //   startTime,
-    //   endTime,
-    //   period,
-    //   ['Average']
-    // );
-
-    // Get the network out metric for the container
-    // const networkOutData = await getMetricStatistics(region.cwClient,
-    //   'AWS/ECS',
-    //   'NetworkTxBytes',
-    //   [{ Name: 'ClusterName', Value: 'falkordb' }, { Name: 'TaskId', Value: tasks.taskArns }, { Name: 'ContainerName', Value: container }],
-    //   startTime,
-    //   endTime,
-    //   period,
-    //   ['Average']
-    // );
-
-    // Display the metric data in the console
-    displayMetricData('CPU Utilization (%)', cpuUtilizationData.Datapoints ?? []);
-    displayMetricData('Memory Utilization (%)', memoryUtilizationData.Datapoints ?? []);
-    // displayMetricData('Network In (Bytes)', networkInData.Datapoints ?? []);
-    // displayMetricData('Network Out (Bytes)', networkOutData.Datapoints ?? []);
     return { cpuUtilizationData, memoryUtilizationData };
   } catch (error) {
-    console.error(error);
+    return Promise.reject(error);
   }
 };
 
@@ -120,26 +85,32 @@ export async function GET() {
     return NextResponse.json({ message: `Task Get failed, can't find region: ${regionName}` }, { status: 500 })
   }
 
-  monitorECSTask(region, user, user.task_arn)
+  let { cpuUtilizationData, memoryUtilizationData } = await monitorECSTask(region, user, user.task_arn)
+
+  let cpuMonitor : Monitor = {
+    name: "CPU (avg/min)",
+    xAxis: [],
+    data: []
+  }
+  cpuUtilizationData.Datapoints?.forEach((datapoint, index, array) => {
+    cpuMonitor.xAxis.push(array.length - index)
+    cpuMonitor.data.push(datapoint.Average?? 0)
+  })
 
 
+  let memoryMonitor : Monitor = {
+    name: "Memory (avg/min)",
+    xAxis: [],
+    data: []
+  }
+  memoryUtilizationData.Datapoints?.forEach((datapoint, index, array) => {
+    memoryMonitor.xAxis.push(array.length - index)
+    memoryMonitor.data.push(datapoint.Average?? 0)
+  })
 
   const monitors: Monitor[] = [
-    {
-      name: "CPU",
-      xAxis: xindex,
-      data: data
-    },
-    {
-      name: "Memory",
-      xAxis: xindex,
-      data: data
-    },
-    {
-      name: "Network",
-      xAxis: xindex,
-      data: data
-    }
+    cpuMonitor,
+    memoryMonitor
   ]
 
   return NextResponse.json(monitors, { status: 200 })
