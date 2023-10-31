@@ -38,10 +38,10 @@ export class UserEntity {
   @Column({ type: "varchar", nullable: true })
   role!: string | null
 
-  @OneToMany<SessionEntity>("SessionEntity", "userId")
+  @OneToMany("SessionEntity", "userId")
   sessions!: SessionEntity[]
 
-  @OneToMany<AccountEntity>("AccountEntity", "userId")
+  @OneToMany("AccountEntity", "userId")
   accounts!: AccountEntity[]
 
   @Column({ type: "varchar", nullable: true })
@@ -120,7 +120,7 @@ export class AccountEntity {
   @Column({ type: "varchar", nullable: true })
   oauth_token!: string | null
 
-  @ManyToOne<UserEntity>("UserEntity", "accounts", {
+  @ManyToOne("UserEntity", "accounts", {
     createForeignKeyConstraints: true,
   })
   user!: UserEntity
@@ -140,7 +140,7 @@ export class SessionEntity {
   @Column({ transformer: transformer.date })
   expires!: string
 
-  @ManyToOne<UserEntity>("UserEntity", "sessions")
+  @ManyToOne("UserEntity", "sessions")
   user!: UserEntity
 }
 
