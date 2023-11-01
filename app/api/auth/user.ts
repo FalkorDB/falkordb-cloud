@@ -1,10 +1,10 @@
-import { UserEntity } from "../models/entities";
+import { User } from "../models/entities";
 import authOptions, { getEntityManager } from "./[...nextauth]/options";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { EntityManager } from "typeorm";
+import { EntityManager } from "@mikro-orm/core";
 
-export async function getUser(role?: string, entityManager?: EntityManager) : Promise<UserEntity | NextResponse>{
+export async function getUser(role?: string, entityManager?: EntityManager) : Promise<User | NextResponse>{
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -17,7 +17,7 @@ export async function getUser(role?: string, entityManager?: EntityManager) : Pr
     }
 
     let manager = entityManager?? await getEntityManager()
-    let user = await manager.findOneBy(UserEntity, {
+    let user = await manager.findOneBy(User, {
         email, role
     })
     return user?? NextResponse.json({ message: "User is unauthorized" }, { status: 401 })

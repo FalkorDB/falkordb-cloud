@@ -4,10 +4,10 @@ import { ChangeAction, ChangeResourceRecordSetsCommand } from "@aws-sdk/client-r
 import { REGIONS, Region } from "./regions";
 import { v4 as uuidv4 } from 'uuid';
 import WebSocket from 'ws';
-import { UserEntity } from "../models/entities";
+import { User } from "../models/entities";
 import { NextResponse } from "next/server";
-import { EntityManager } from "typeorm";
 import { getEntityManager } from "../auth/[...nextauth]/options";
+import { EntityManager } from "@mikro-orm/core";
 
 const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? ""
 
@@ -175,7 +175,7 @@ async function updateDNS(publicIp: string, dns: string, region: Region, action: 
     }));
 }
 
-export async function waitForService(region: Region, user: UserEntity, taskArn: string): Promise<void> {
+export async function waitForService(region: Region, user: User, taskArn: string): Promise<void> {
 
     try {
         let waitECSTask = await waitUntilServicesStable(
@@ -266,7 +266,7 @@ function cancelTask(region: Region, taskArn: string): Promise<any> {
     return region.ecsClient.send(new StopTaskCommand(params));
 }
 
-export async function deleteSandBox(user: UserEntity, entityManager: EntityManager): Promise<NextResponse<{ message: string }>> {
+export async function deleteSandBox(user: User, entityManager: EntityManager): Promise<NextResponse<{ message: string }>> {
 
     if (!user.task_arn) {
         return NextResponse.json({ message: "Can't delete SandBox" }, { status: 401 })
