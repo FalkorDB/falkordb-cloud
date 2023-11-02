@@ -10,6 +10,7 @@ import { EntityManager } from "typeorm";
 import { getEntityManager } from "../auth/[...nextauth]/options";
 
 const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID ?? ""
+const FALKORDB_VERSION = process.env.FALKORDB_VERSION ?? "latest"
 
 
 export function createTaskDefinition(region: Region, tls: boolean, name: string, password: string): RegisterTaskDefinitionCommand {
@@ -21,7 +22,7 @@ export function createTaskDefinition(region: Region, tls: boolean, name: string,
         "containerDefinitions": [
             {
                 "name": "falkordb",
-                "image": "falkordb/falkordb:4.0.0-alpha.1",
+                "image": `falkordb/falkordb:${FALKORDB_VERSION}`,
                 "cpu": 0,
                 "portMappings": [
                     {
