@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const client = await getClient(user)
-        await client.restore(name, 0, buffer, { REPLACE: true });
+        await client.restore(name, 0, buffer);
         return NextResponse.json({ result: name }, { status: 200 })
     } catch (err) {
         return NextResponse.json({ message: err }, { status: 500 })
