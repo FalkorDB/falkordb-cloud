@@ -16,10 +16,10 @@ const dataSourceOptions: DataSourceOptions = {
     password: process.env.POSTGRES_PASSWORD as string,
     database: (process.env.POSTGRES_DATABASE || "falkordb") as string,
     synchronize: (env == "development" ? true : false),
-    ssl: (env == "development" ? undefined : {
-        rejectUnauthorized: false,
-        requestCert: true,
-    }),
+    // ssl: (env == "development" ? undefined : {
+    //     rejectUnauthorized: false,
+    //     requestCert: true,
+    // }),
 }
 
 const authOptions : AuthOptions = {
