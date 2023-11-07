@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, Graph } from 'redis';
+import { Graph } from 'falkordb';
 import { getUser } from '../../auth/user';
 import { getClient } from "../client";
 

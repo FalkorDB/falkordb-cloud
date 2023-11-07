@@ -36,7 +36,7 @@ export const JS_EXAMPLE  =
    <a target="_blank" className="underline text-blue-600" href="https://github.com/redis/node-redis">Read more</a>
    <SyntaxHighlighter language="javascript" style={dracula}>
 {
-`import { createClient, Graph } from 'redis';
+`import { createClient, Graph } from 'falkordb';
 
 const client = createClient({
    username: 'falkordb',
