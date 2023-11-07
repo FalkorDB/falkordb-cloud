@@ -123,7 +123,7 @@ export default function Page() {
   if (sandbox) {
     return (
       <main className="flex flex-col min-h-screen">
-        <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+        <Collapsible className="p-2 bg-gray-100 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
           <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
             <ChevronsUpDown /> Connection Details
           </CollapsibleTrigger>
@@ -131,7 +131,7 @@ export default function Page() {
             <DatabaseDetails sandbox={sandbox} onDelete={deleteSandbox} />
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+        <Collapsible className="p-2 bg-gray-100 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
           <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
             <ChevronsUpDown /> Monitor
           </CollapsibleTrigger>
@@ -139,7 +139,7 @@ export default function Page() {
             <Monitor/>
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible defaultOpen={true} className="p-2 bg-gray-200 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
+        <Collapsible defaultOpen={true} className="p-2 bg-gray-100 shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300 m-1">
           <CollapsibleTrigger className="flex flex-row p-1 space-x-2">
             <ChevronsUpDown /> Query Pane
           </CollapsibleTrigger>
