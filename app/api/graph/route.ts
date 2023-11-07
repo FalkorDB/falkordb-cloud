@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from 'redis';
 import { getUser } from '../auth/user';
 import { getClient } from "./client";
 
