@@ -1,4 +1,4 @@
-import { RedisClientType, RedisDefaultModules, createClient } from "redis";
+import { RedisClientType, RedisDefaultModules, createClient } from "falkordb";
 import { UserEntity } from "../models/entities";
 import { LRUCache } from 'lru-cache'
 

@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import { createClient } from 'redis';
+import { createClient } from 'falkordb';
 import { getUser } from '../auth/user';
 import { getClient } from '../graph/client';
 
