@@ -18,7 +18,8 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
-import { BASH_EXAMPLE, JS_EXAMPLE, PYTHON_EXAMPLE, MORE_EXAMPLE } from "./GettingStrartedExamples";
+import { MORE_EXAMPLES, EXAMPLES } from "./GettingStrartedExamples";
+import { CodePad } from "./Codepad";
 
 export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void }) {
 
@@ -69,22 +70,22 @@ export function DatabaseDetails(props: { sandbox: Sandbox, onDelete: () => void 
             <div className="max-w-xs lg:max-w-4xl lg:grow md:bg-gray-300 md:rounded-lg dark:bg-zinc-850 p-1 m-2">
                 <Tabs defaultValue="javascript">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                        <TabsTrigger value="python">Python</TabsTrigger>
-                        <TabsTrigger value="cli">CLI</TabsTrigger>
+                        {
+                            EXAMPLES.map((example) => (
+                                <TabsTrigger key={example.language} value={example.language}>{example.language}</TabsTrigger>
+                            ))
+                        }
                         <TabsTrigger value="more">More</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="javascript">
-                        {JS_EXAMPLE}
-                    </TabsContent>
-                    <TabsContent value="python">
-                        {PYTHON_EXAMPLE}
-                    </TabsContent>
-                    <TabsContent value="cli">
-                        {BASH_EXAMPLE}
-                    </TabsContent>
+                    {
+                        EXAMPLES.map((example) => (
+                            <TabsContent key={example.language} value={example.language}>
+                                <CodePad {...example} />
+                            </TabsContent>
+                        ))
+                    }
                     <TabsContent value="more">
-                        {MORE_EXAMPLE}
+                        {MORE_EXAMPLES}
                     </TabsContent>
                 </Tabs>
             </div>
