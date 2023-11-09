@@ -1,6 +1,6 @@
 import { getUser } from '@/app/api/auth/user';
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, Graph } from 'falkordb';
+import { Graph } from 'falkordb';
 import { getClient } from '../../client';
 
 export async function GET(request: NextRequest, { params }: { params: { graph: string, node: string } }) {
