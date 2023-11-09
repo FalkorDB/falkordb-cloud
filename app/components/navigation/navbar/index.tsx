@@ -8,6 +8,11 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
   return (
     <>
       <div className="w-full h-20 bg-blue-600 sticky top-0">
+        <div className="absolute top-8 left-8 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="transform rotate-[315deg] bg-red-500 text-white px-10 py-1 text-xs font-bold uppercase tracking-wider shadow-lg">
+            Beta
+          </div>
+        </div>
         <div className="container mx-auto px-4 h-full">
           <div className="flex justify-between items-center h-full">
             <Logo />
