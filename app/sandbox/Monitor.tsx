@@ -82,9 +82,10 @@ function getOptions(monitor: Monitor) {
     return options
 }
 
-async function getMonitorData(): Promise<Monitor[]> {
+async function getMonitorData(task_arn?: string): Promise<Monitor[]> {
 
-    let response = await fetch('/api/db/monitor', {
+    let query = task_arn ? `?task_arn=${encodeURIComponent(task_arn)}` : ''
+    let response = await fetch(`/api/db/monitor${query}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -93,15 +94,15 @@ async function getMonitorData(): Promise<Monitor[]> {
 
     if (response.ok) {
         return response.json()
-    } else {
-        return Promise.reject(response.text)
     }
+    
+    return Promise.reject(response.text)
 }
 
-export function Monitor() {
+export function Monitor(props: { task_arn?: string}) {
 
     // Fetch data from server on users
-    const { data, error, isLoading } = useSWR({}, getMonitorData, {refreshInterval: 60*1000 })
+    const { data, error, isLoading } = useSWR({}, ()=>getMonitorData(props.task_arn), {refreshInterval: 60*1000 })
 
     if (error) return <div>{error}</div>
     if (isLoading || !data) return <Spinning text="Loading monitor data..." />

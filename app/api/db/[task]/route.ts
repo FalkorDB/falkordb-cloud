@@ -14,18 +14,20 @@ export async function DELETE(request: NextRequest, { params }: { params: { task:
             return res
         }
 
-        let user: UserEntity | null = res;
+        let user: UserEntity = res;
         // If the user is admin, we can delete any sandbox
         if(user.role === 'admin') {
 
             // Find the user own the sandbox by task_arn
-            user = await transactionalEntityManager.findOneBy(UserEntity, {
+            let ownerUser = await transactionalEntityManager.findOneBy(UserEntity, {
                 task_arn: params.task
             })
 
-            if (!user) {
+            if (!ownerUser) {
                 return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
             }
+
+            user = ownerUser
         }
 
         // Verify the task arn is valid and owned by the user

@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Monitor } from "./monitor";
 import { DescribeTasksCommand, ListTasksCommand, waitUntilServicesStable } from '@aws-sdk/client-ecs';
 import { CloudWatchClient, GetMetricStatisticsCommand, GetMetricStatisticsCommandOutput, Statistic } from '@aws-sdk/client-cloudwatch';
 import { getUser } from "../../auth/user";
 import { REGIONS, Region } from "../regions";
 import { UserEntity } from "../../models/entities";
+import { getEntityManager } from "@/app/api/auth/[...nextauth]/options";
 
 // // Define the parameters for the ECS task
 // const region = 'us-east-1'; // Change this to your region
@@ -68,15 +69,35 @@ async function monitorECSTask(region: Region, user: UserEntity, serviceArn: stri
   }
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
 
-  let user = await getUser()
-  if (user instanceof NextResponse) {
-    return user
+  let res = await getUser()
+  if (res instanceof NextResponse) {
+      return res
+  }
+  let user: UserEntity = res;
+
+  const taskARN = request.nextUrl.searchParams.get("task_arn");
+
+  // If the user is admin, we can monitor any sandbox
+  if(taskARN && user.task_arn != taskARN && user.role === 'admin') {
+
+      // Find the user own the sandbox by task_arn
+      let entityManager = await getEntityManager()
+      let ownerUser = await entityManager.findOneBy(UserEntity, {
+          task_arn: taskARN
+      })
+
+      if (!ownerUser) {
+          return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
+      }
+
+      user = ownerUser
   }
 
-  if (!user.task_arn) {
-    return NextResponse.json({ message: "Sandbox not found" }, { status: 404 })
+  // Verify the task arn is valid and owned by the user
+  if(!user.task_arn || user.task_arn != taskARN) {
+      return NextResponse.json({ message: "Can't monitor SandBox" }, { status: 401 })
   }
 
   const regionName = user.task_arn.split(":")[3]
