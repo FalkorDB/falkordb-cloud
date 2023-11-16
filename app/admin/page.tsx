@@ -7,9 +7,10 @@ import { useState } from "react";
 import Spinning from "../components/spinning";
 import { Row } from "@tanstack/react-table";
 import { User } from "../api/user/user";
+import { useRouter } from "next/navigation";
 
 
-function getUsers(props: {pageIndex:number}): Promise<User[]> {
+function getUsers(props: { pageIndex: number }): Promise<User[]> {
   return fetch('/api/user', {
     method: 'GET',
     headers: {
@@ -29,9 +30,9 @@ function getUsers(props: {pageIndex:number}): Promise<User[]> {
 }
 
 function deleteSandbox(row: Row<any>) {
-  let user:User = row.original
+  let user: User = row.original
 
-  if (!user.task_arn){
+  if (!user.task_arn) {
     toast({
       title: "Error",
       description: "No sandbox found",
@@ -57,13 +58,26 @@ function deleteSandbox(row: Row<any>) {
     })
 }
 
-
 export default function Page() {
 
   const [pageIndex, setPageIndex] = useState(0);
+  const router = useRouter()
+
+  function monitorSandbox(row: Row<any>) {
+    let user: User = row.original
+
+    if (!user.task_arn) {
+      toast({
+        title: "Error",
+        description: "No sandbox found",
+      })
+      return
+    }
+    router.push(`/admin/monitor?task_arn=${user.task_arn}`)
+  }
 
   // Fetch data from server on users
-  const { data, error, isLoading } = useSWR({pageIndex}, getUsers)
+  const { data, error, isLoading } = useSWR({ pageIndex }, getUsers)
 
   if (isLoading) return <Spinning text="Loading users..." />
 
@@ -73,14 +87,15 @@ export default function Page() {
       <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
         <div className="space-y-8 p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300">
           {
-            (error || !data) ? 
-            <div>failed to load</div> :
-            <DataTable rows={data} 
-            columnNames={["email", "id", "name", "db_host", "db_ip", "db_port", "db_create_time", "tls", "task_arn"]}
-            actions={[
-              { name: "Delete Sandbox", onAction:deleteSandbox, warning:"This action cannot be undone. This will permanently delete your sandbox and remove the data from our servers." },
-            ]}
-             />
+            (error || !data) ?
+              <div>failed to load</div> :
+              <DataTable rows={data}
+                columnNames={["email", "id", "name", "db_host", "db_ip", "db_port", "db_create_time", "tls", "task_arn"]}
+                actions={[
+                  { name: "Monitor Sandbox", onAction: monitorSandbox },
+                  { name: "Delete Sandbox", onAction: deleteSandbox, warning: "This action cannot be undone. This will permanently delete your sandbox and remove the data from our servers." },
+                ]}
+              />
           }
         </div>
       </main>

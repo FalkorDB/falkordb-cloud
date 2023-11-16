@@ -10,6 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Button } from "@/components/ui/button";
 
 // A function that takes a full name as a string and returns its initials as a string
 function getInitials(fullName: string): string {
@@ -42,22 +44,29 @@ export default function AvatarButton() {
   }
 
   const name = session?.user?.name;
+  const email = session?.user?.email;
   const image = session?.user?.image ?? ""
   const initials = name ? getInitials(name) : ""
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <div className="h-12 rounded-lg font-bold px-5 text-slate-50">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarImage alt="@shadcn" src={image} />
-              <AvatarFallback className="text-blue-600">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="grid gap-0.5 text-xs">
-              <div className="text-slate-50">{name}</div>
+        <HoverCard>
+          <HoverCardTrigger>
+            <div className="flex items-center gap-3 p-5">
+              <Avatar className="h-9 w-9">
+                <AvatarImage alt="@shadcn" src={image} />
+                <AvatarFallback className="text-blue-600">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="text-xs font-bold text-slate-50">{name}</div>
             </div>
-          </div>
-        </div>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-80">
+            <div className="flex flex-col text-left text-black">
+              <div>Name: {name}</div>
+              <div>Email: {email}</div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
