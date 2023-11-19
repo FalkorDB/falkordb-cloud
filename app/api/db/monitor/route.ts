@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Verify the task arn is valid and owned by the user
-  if(!user.task_arn || user.task_arn != taskARN) {
+  if(!user.task_arn || (taskARN && user.task_arn != taskARN)) {
       return NextResponse.json({ message: "Can't monitor SandBox" }, { status: 401 })
   }
 
