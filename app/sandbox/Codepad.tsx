@@ -20,10 +20,10 @@ function copyToClipboard(value: string) {
     })
 }
 
-export function CodePad(props:{code:string, language:string, docs:string}) {
+export function CodePad(props: { code: string, language: string, docs: string }) {
     return (
         <div>
-            <a target="_blank" className="underline text-blue-600" href={props.docs}>Read more</a>
+            <a className="underline text-blue-600" href={props.docs} target="_blank" rel="noopener noreferrer">Read more</a>
             <Button className="bg-transparent text-blue-600 px-2 hover:text-slate-50" onClick={() => copyToClipboard(props.code)}>
                 <Copy className="ml-2 px-0" />
             </Button>

@@ -40,7 +40,7 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
                 </Link>
               </li>
               <li>
-                <Link href="https://docs.falkordb.com/">
+                <Link href="https://docs.falkordb.com/" target="_blank" rel="noopener noreferrer">
                   <p>Documentation</p>
                 </Link>
               </li>
