@@ -11,7 +11,11 @@ import { useEffect } from 'react';
 
 export default function Page() {
     const searchParams = useSearchParams()
-    const callbackUrl = searchParams.get('callbackUrl')?? '/'
+    const callbackUrl = searchParams.get('callbackUrl') ?? '/'
+
+    // If the user is redirected to this page because of a sign-in error,
+    // the error query parameter will be set
+    const error = searchParams.get('error')
 
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -32,16 +36,22 @@ export default function Page() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2">
             <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
-                <div className="flex flex-col space-y-8 p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300">
+                <div className="flex flex-col space-y-6 p-6 bg-white shadow-lg rounded-lg dark:bg-zinc-850 justify-between border border-gray-300">
                     <h1 className="text-3xl font-bold">Sign in to your account</h1>
-                    <Button className='flex flex-row text-xl space-x-2' onClick={() => signIn('github', { callbackUrl })}>
+                    <Button className='flex flex-row text-xl p-6 space-x-2' onClick={() => signIn('github', { callbackUrl })}>
                         <Github />
                         <p>Sign in with GitHub</p>
                     </Button>
-                    <Button className='flex flex-row text-xl space-x-2' onClick={() => signIn('google', { callbackUrl })}>
+                    <Button className='flex flex-row text-xl p-6 space-x-2' onClick={() => signIn('google', { callbackUrl })}>
                         <Google />
                         <p>Sign in with Google</p>
                     </Button>
+                    {error &&
+                        <div className="bg-red-600 text-white py-2 px-4 text-left rounded-lg text-base">
+                            <p>To confirm your identity, sign in with</p>
+                            <p>the same account you used originally.</p>
+                        </div>
+                    }
                 </div>
             </main>
         </div>
