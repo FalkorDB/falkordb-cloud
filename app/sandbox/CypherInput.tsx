@@ -48,9 +48,9 @@ interface GraphResult {
 interface ExtractedData {
     data: any[][],
     columns: string[],
-    categories: Category[],
-    nodes: GraphData[],
-    edges: GraphLink[]
+    categories: Map<String, Category>,
+    nodes: Map<number, GraphData>,
+    edges: Set<GraphLink>,
 }
     
 
@@ -64,12 +64,11 @@ function extractData(results: GraphResult | null) : ExtractedData {
         data = results.data
     }
 
-    let nodesMap = new Map<number, GraphData>();
-    let categoriesMap = new Map<String, Category>();
-    categoriesMap.set("default", { name: "default", index: 0})
-    let categories: Category[] = [{ name: "default", index: 0}]
+    let nodes = new Map<number, GraphData>()
+    let categories = new Map<String, Category>()
+    categories.set("default", { name: "default", index: 0})
 
-    let edges: GraphLink[] = []
+    let edges = new Set<GraphLink>()
 
     data.forEach((row: any[]) => {
         Object.values(row).forEach((cell: any) => {
@@ -78,42 +77,40 @@ function extractData(results: GraphResult | null) : ExtractedData {
 
                     let sourceId = cell.sourceId.toString();
                     let destinationId = cell.destinationId.toString()
-                    edges.push({ source: sourceId, target: destinationId })
+                    edges.add({ source: sourceId, target: destinationId })
 
                     // creates a fakeS node for the source and target
-                    let source = nodesMap.get(cell.sourceId)
+                    let source = nodes.get(cell.sourceId)
                     if(!source) {
                         source = { id: cell.sourceId.toString(), name: cell.sourceId.toString(), value: "", category: 0 }
-                        nodesMap.set(cell.sourceId, source)
+                        nodes.set(cell.sourceId, source)
                     }
 
-                    let destination = nodesMap.get(cell.destinationId)
+                    let destination = nodes.get(cell.destinationId)
                     if(!destination) {
                         destination = { id: cell.destinationId.toString(), name: cell.destinationId.toString(), value: "", category: 0 }
-                        nodesMap.set(cell.destinationId, destination)
+                        nodes.set(cell.destinationId, destination)
                     }
                 } else if (cell.labels) {
 
                     // check if category already exists in categories
-                    let category = categoriesMap.get(cell.labels[0])
+                    let category = categories.get(cell.labels[0])
                     if (!category) {
-                        category = { name: cell.labels[0], index: categories.length }
-                        categoriesMap.set(category.name, category)
-                        categories.push(category)
+                        category = { name: cell.labels[0], index: categories.size }
+                        categories.set(category.name, category)
                     }
 
                     // check if node already exists in nodes or fake node was created
-                    let node = nodesMap.get(cell.id)
+                    let node = nodes.get(cell.id)
                     if (!node || node.value === "") {
                         node = { id: cell.id.toString(), name: cell.id.toString(), value: JSON.stringify(cell), category: category.index }
-                        nodesMap.set(cell.id, node)
+                        nodes.set(cell.id, node)
                     }
                 }
             }
         })
     })
 
-    let nodes: GraphData[] = Array.from(nodesMap.values())
     return { data, columns, categories, nodes, edges}
 }
 
@@ -185,7 +182,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
     }
 
     // A function that handles the click event of the Graph
-    async function handleGraphClick(id: number) : Promise<[Category[], GraphData[], GraphLink[]]>{
+    async function handleGraphClick(id: number) : Promise<[Map<String,Category>, Map<number, GraphData>, Set<GraphLink>]>{
         
         let results = await props.onGraphClick(selectedGraph, id)
         let extracted = extractData(results)
@@ -195,7 +192,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
     let extracted = extractData(results)
 
     // If the result holds data to present in the graph tab, set it as the default tab
-    const defaultTab =  (extracted.nodes.length > 0 || extracted.edges.length > 0) ? "graph" : "table"
+    const defaultTab =  (extracted.nodes.size > 0 || extracted.edges.size > 0) ? "graph" : "table"
 
     return (
         <div className="flex flex-col">
@@ -211,13 +208,17 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
             {!valid && <p className="text-red-600">Invalid Cypher query. Please check the syntax.</p>}
             {extracted.data.length > 0 && (
                 <>
-                    <Tabs defaultValue={defaultTab} className="w-full grow py-2">
+                    <Tabs defaultValue={defaultTab} className="w-full grow py-2 min-h-900">
                         <TabsList>
                             <TabsTrigger value="table">Data</TabsTrigger>
                             <TabsTrigger value="graph">Graph</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="table"><DataTable rows={extracted.data} columnNames={extracted.columns} /></TabsContent>
-                        <TabsContent value="graph"><DirectedGraph nodes={extracted.nodes} edges={extracted.edges} categories={extracted.categories} onChartClick={handleGraphClick} /></TabsContent>
+                        <TabsContent value="table">
+                            <DataTable rows={extracted.data} columnNames={extracted.columns} />
+                        </TabsContent>
+                        <TabsContent value="graph">
+                            <DirectedGraph nodes={extracted.nodes} edges={extracted.edges} categories={extracted.categories} onChartClick={handleGraphClick} />
+                        </TabsContent>
                     </Tabs>
                 </>
             )}

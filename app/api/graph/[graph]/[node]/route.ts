@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { graph: s
     try {
         const client = await getClient(user)
         const graph = new Graph(client, params.graph);    
-        let result = await graph.query("Match (s)-[r]->(t) where ID(s) = $id return r,t", { params: { id: parseInt(params.node) } })
+        let result = await graph.query("Match (s)-[r]-(t) where ID(s) = $id return r,t", { params: { id: parseInt(params.node) } })
         return NextResponse.json({ result: result }, { status: 200 })
     } catch (err: any) {
         return NextResponse.json({ message: err.message }, { status: 400 })
