@@ -93,8 +93,8 @@ export function DirectedGraph(
 
   let options = getOption(nodes, edges, categories)
 
-  let onEvents: { click: (params: any) => void } = {
-    click: async (params: any) => {
+  let onEvents: { dblclick: (params: any) => void } = {
+    dblclick: async (params: any) => {
       let [newCategories, newNodes, newEdges] = await props.onChartClick(parseInt(params.data.id))
 
       let newCategoriesArray = new Array<Category>(newCategories.size)
