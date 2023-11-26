@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
 import ReactEcharts, { EChartsInstance } from "echarts-for-react";
+import { Button } from '@/components/ui/button';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 
 export interface Category {
   name: string,
@@ -31,7 +33,6 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         })
       }
     ],
-
     toolbox: {
       show: true,
       feature: {
@@ -44,7 +45,6 @@ function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[
         nodes,
         edges,
         categories,
-
         type: "graph",
         layout: "force",
         force: {
@@ -93,8 +93,8 @@ export function DirectedGraph(
 
   let options = getOption(nodes, edges, categories)
 
-  let onEvents: { click: (params: any) => void } = {
-    click: async (params: any) => {
+  let onEvents: { dblclick: (params: any) => void } = {
+    dblclick: async (params: any) => {
       let [newCategories, newNodes, newEdges] = await props.onChartClick(parseInt(params.data.id))
 
       let newCategoriesArray = new Array<Category>(newCategories.size)
@@ -109,7 +109,7 @@ export function DirectedGraph(
           let newCategory = newCategoriesArray[node.category]
           let category = props.categories.get(newCategory.name)
 
-          if(category) {
+          if (category) {
             node.category = category.index
           } else {
             newCategory.index = categories.length
@@ -151,15 +151,34 @@ export function DirectedGraph(
     }
   }
 
+  function handleZoomClick(factor: number) {
+    let chart = echartRef.current
+    if(chart){
+      let option = chart.getOption()
+      let zoom = factor * option.series[0].zoom
+      chart.setOption({
+        series: [
+          {
+            zoom,
+          }
+        ]
+      })
+    }
+  }
+
   return (
-    <ReactEcharts
-      style={{ height: "50vh"}}
-      className="border"
-      option={options}
-      onEvents={onEvents}
-      onChartReady={
-        (e) => { echartRef.current = e }
-      }
-    />
+    <div>
+      <div className="flex flex-row-reverse" >
+        <Button className="text-gray-600 dark:text-gray-400 rounded-lg border border-gray-300" variant="ghost" onClick={()=>handleZoomClick(1.1)}><ZoomIn/></Button>
+        <Button className="text-gray-600 dark:text-gray-400 rounded-lg border border-gray-300" variant="ghost" onClick={()=>handleZoomClick(0.9)}><ZoomOut/></Button>
+      </div>
+      <ReactEcharts
+        style={{ height: "50vh" }}
+        className="border"
+        option={options}
+        onEvents={onEvents}
+        onChartReady={(e) => { echartRef.current = e }}
+      />
+    </div >
   )
 }
