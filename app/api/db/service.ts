@@ -62,8 +62,8 @@ export function createTaskDefinition(region: Region, tls: boolean, name: string,
         "requiresCompatibilities": [
             "FARGATE"
         ],
-        "cpu": "256",
-        "memory": "512",
+        "cpu": "1024",
+        "memory": "2048",
         "runtimePlatform": {
             "cpuArchitecture": "X86_64",
             "operatingSystemFamily": "LINUX"
