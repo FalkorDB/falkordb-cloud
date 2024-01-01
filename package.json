@@ -47,7 +47,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "reflect-metadata": "^0.1.13",
     "swr": "^2.2.4",
-    "tailwind-merge": "^2.0.0",
+    "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "typeorm": "^0.3.17",
     "utf-8-validate": "^6.0.3",
