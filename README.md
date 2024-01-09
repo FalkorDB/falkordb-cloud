@@ -8,9 +8,9 @@ This is a FalkorDB sandbox Dashboard project and it's [Next.js](https://nextjs.o
 
 ## Getting Started
 
-* First, get the ``.env.local`` file with credentials to the development environment.
+* First, get the ``.env.local`` file with credentials to the development environment, you can copy ``.env.local.template``.
 
-The ``.env.local`` should include the following variables:
+The ``.env.local`` should include the following variables
 
 ```yaml
 # GITHUB Auth credentials
