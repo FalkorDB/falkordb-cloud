@@ -2,6 +2,10 @@
 
 This is a FalkorDB sandbox Dashboard project and it's [Next.js](https://nextjs.org/) project .
 
+![image](https://github.com/FalkorDB/falkordb-cloud/assets/753206/4f9afa42-dd58-4ddc-91dc-3c863b8f2a87)
+
+
+
 ## Getting Started
 
 * First, get the ``.env.local`` file with credentials to the development environment, you can copy ``.env.local.template``.
