@@ -7,7 +7,6 @@ import { Category, DirectedGraph, GraphData, GraphLink } from '../components/Dir
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraphsList } from './GraphsList';
 import { toast } from '@/components/ui/use-toast';
-import { Separator } from "@/components/ui/separator"
 
 // A function that checks if a string is a valid Cypher query
 // This is a very basic and incomplete validation, you may want to use a more robust parser
@@ -50,7 +49,7 @@ interface ExtractedData {
     columns: string[],
     categories: Map<String, Category>,
     nodes: Map<number, GraphData>,
-    edges: Set<GraphLink>,
+    edges: Map<string, GraphLink>,
 }
     
 
@@ -68,7 +67,7 @@ function extractData(results: GraphResult | null) : ExtractedData {
     let categories = new Map<String, Category>()
     categories.set("default", { name: "default", index: 0})
 
-    let edges = new Set<GraphLink>()
+    let edges = new Map<string, GraphLink>()
 
     data.forEach((row: any[]) => {
         Object.values(row).forEach((cell: any) => {
@@ -77,8 +76,13 @@ function extractData(results: GraphResult | null) : ExtractedData {
 
                     let sourceId = cell.sourceId.toString();
                     let destinationId = cell.destinationId.toString()
-                    edges.add({ source: sourceId, target: destinationId })
-
+                    let edge = new GraphLink(sourceId, destinationId, cell.relationshipType)
+                    let key = edge.toString()
+                    let existing = edges.get(key)
+                    if(!existing) {
+                        edges.set(key, edge)
+                    }
+                    
                     // creates a fakeS node for the source and target
                     let source = nodes.get(cell.sourceId)
                     if(!source) {
@@ -182,7 +186,7 @@ export function CypherInput(props: { onSubmit: (graph: string, query: string) =>
     }
 
     // A function that handles the click event of the Graph
-    async function handleGraphClick(id: number) : Promise<[Map<String,Category>, Map<number, GraphData>, Set<GraphLink>]>{
+    async function handleGraphClick(id: number) : Promise<[Map<String,Category>, Map<number, GraphData>, Map<string, GraphLink>]>{
         
         let results = await props.onGraphClick(selectedGraph, id)
         let extracted = extractData(results)

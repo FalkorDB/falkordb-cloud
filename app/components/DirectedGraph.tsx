@@ -1,7 +1,5 @@
 import React, { useRef } from 'react';
 import ReactEcharts, { EChartsInstance } from "echarts-for-react";
-import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut } from 'lucide-react';
 
 export interface Category {
   name: string,
@@ -15,75 +13,28 @@ export interface GraphData {
   category: number
 }
 
-export interface GraphLink {
-  source: string,
-  target: string
-}
+export class GraphLink {
+  private source: string;
+  private target: string;
+  private type: string;
 
-// Define the options for the echarts component
-function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[]) {
-  return {
-    tooltip: {
-      position: 'right',
-    },
-    legend: [
-      {
-        data: categories.map(function (c) {
-          return c.name;
-        })
-      }
-    ],
-    toolbox: {
-      show: true,
-      feature: {
-        restore: {},
-        saveAsImage: {}
-      }
-    },
-    series: [
-      {
-        nodes,
-        edges,
-        categories,
-        type: "graph",
-        layout: "force",
-        force: {
-          edgeLength: 70,
-          repulsion: 150,
-          gravity: 0.1
-        },
-        draggable: true,
-        label: {
-          position: 'center',
-          show: true,
-          formatter: '{b}',
-        },
-        emphasis: {
-          focus: 'adjacency',
-          label: {
-            position: 'right',
-            show: true
-          }
-        },
-        roam: true,
-        lineStyle: {
-          color: 'source',
-          width: 3.0,
-          curveness: 0.1,
-          opacity: 0.7
-        },
-        symbolSize: 30,
-      },
-    ],
-  };
-};
+  constructor(source: string, target: string, type: string) {
+    this.source = source
+    this.target = target
+    this.type = type
+  }
+
+  public toString(): string {
+    return `${this.source},${this.target},${this.type}`
+  }
+}
 
 export function DirectedGraph(
   props: {
     nodes: Map<number, GraphData>,
-    edges: Set<GraphLink>,
+    edges: Map<String, GraphLink>,
     categories: Map<String, Category>,
-    onChartClick: (id: number) => Promise<[Map<String, Category>, Map<number, GraphData>, Set<GraphLink>]>
+    onChartClick: (id: number) => Promise<[Map<String, Category>, Map<number, GraphData>, Map<String, GraphLink>]>
   }) {
   const echartRef = useRef<EChartsInstance | null>(null)
 
@@ -125,8 +76,9 @@ export function DirectedGraph(
       })
 
       newEdges.forEach((edge) => {
-        if (!props.edges.has(edge)) {
-          props.edges.add(edge)
+        let key = edge.toString()
+        if (!props.edges.get(key)) {
+          props.edges.set(key, edge)
           edges.push(edge)
         }
       })
@@ -153,7 +105,7 @@ export function DirectedGraph(
 
   function handleZoomClick(factor: number) {
     let chart = echartRef.current
-    if(chart){
+    if (chart) {
       let option = chart.getOption()
       let zoom = factor * option.series[0].zoom
       chart.setOption({
@@ -166,12 +118,82 @@ export function DirectedGraph(
     }
   }
 
+  // Define the options for the echarts component
+  function getOption(nodes: GraphData[], edges: GraphLink[], categories: Category[]) {
+    return {
+      tooltip: {
+        position: 'right',
+      },
+      legend: [
+        {
+          data: categories.map(function (c) {
+            return c.name;
+          })
+        }
+      ],
+      toolbox: {
+        show: true,
+        feature: {
+          myZoomIn: {
+            show: true,
+            title: 'Zoom In',
+            icon: 'path://M19 11 C19 15.41 15.41 19 11 19 6.58 19 3 15.41 3 11 3 6.58 6.58 3 11 3 15.41 3 19 6.58 19 11 zM21 21 C19.55 19.55 18.09 18.09 16.64 16.64 M11 8 C11 10 11 12 11 14 M8 11 C10 11 12 11 14 11',
+            onclick: function () {
+              handleZoomClick(1.1)
+            }
+          },
+          myZoomOut: {
+            show: true,
+            title: 'Zoom Out',
+            icon: 'path://M19 11 C19 15.41 15.41 19 11 19 6.58 19 3 15.41 3 11 3 6.58 6.58 3 11 3 15.41 3 19 6.58 19 11 zM21 21 C19.55 19.55 18.09 18.09 16.64 16.64 M8 11 C10 11 12 11 14 11',
+            onclick: function () {
+              handleZoomClick(0.9)
+            }
+          },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      series: [
+        {
+          nodes,
+          edges,
+          categories,
+          type: "graph",
+          layout: "force",
+          force: {
+            edgeLength: 70,
+            repulsion: 150,
+            gravity: 0.1
+          },
+          draggable: true,
+          edgeSymbol: ['none', 'arrow'],
+          edgeLabel: {
+            show: true,
+            fontSize: 8,
+            formatter: function (params: any) {
+                return params.data.type;
+            }
+          },
+          label: {
+            position: 'center',
+            show: true,
+            formatter: '{b}',
+          },
+          roam: true,
+          autoCurveness: true,
+          lineStyle: {
+            width: 2.0,
+            opacity: 0.7
+          },
+          symbolSize: 20,
+        },
+      ],
+    };
+  };
+
   return (
     <div>
-      <div className="flex flex-row-reverse" >
-        <Button className="text-gray-600 dark:text-gray-400 rounded-lg border border-gray-300" variant="ghost" onClick={()=>handleZoomClick(1.1)}><ZoomIn/></Button>
-        <Button className="text-gray-600 dark:text-gray-400 rounded-lg border border-gray-300" variant="ghost" onClick={()=>handleZoomClick(0.9)}><ZoomOut/></Button>
-      </div>
       <ReactEcharts
         style={{ height: "50vh" }}
         className="border"
