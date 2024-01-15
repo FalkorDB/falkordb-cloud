@@ -33,7 +33,7 @@
     "aws-crt": "^1.20.0",
     "bufferutil": "^4.0.8",
     "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
+    "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
     "echarts-for-react": "^3.0.2",
     "falkordb": "^5.0.1",
