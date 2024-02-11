@@ -118,9 +118,9 @@ export function DirectedGraph(
     }
   }
 
-  // Define the options for the echarts component
   /**
    * Generates the configuration options for the echarts component.
+   * Define the options for the echarts component
    * @param {GraphData[]} nodes - An array of graph nodes.
    * @param {GraphLink[]} edges - An array of graph links.
    * @param {Category[]} categories - An array of categories for nodes.
