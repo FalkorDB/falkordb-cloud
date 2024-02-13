@@ -5,6 +5,7 @@ import { NextAuthProvider } from "@/app/providers";
 import GoogleAnalytics from "@/app/components/GoogleAnalytics";
 import { Toaster } from "@/components/ui/toaster"
 import Footer from '@/app/components/footer';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,6 +29,8 @@ export default function RootLayout({
         <NextAuthProvider>{children}</NextAuthProvider>
         <Toaster />
         <Footer />
+        
+        <Script id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/144055056.js"></Script> 
       </body>
     </html>
   )
