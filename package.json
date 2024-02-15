@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@auth/typeorm-adapter": "^1.1.0",
-    "@aws-sdk/client-cloudwatch": "^3.485.0",
+    "@aws-sdk/client-cloudwatch": "^3.514.0",
     "@aws-sdk/client-ec2": "^3.485.0",
     "@aws-sdk/client-ecs": "^3.485.0",
     "@aws-sdk/client-route-53": "^3.485.0",
