@@ -13,7 +13,7 @@
     "@aws-sdk/client-cloudwatch": "^3.485.0",
     "@aws-sdk/client-ec2": "^3.485.0",
     "@aws-sdk/client-ecs": "^3.485.0",
-    "@aws-sdk/client-route-53": "^3.485.0",
+    "@aws-sdk/client-route-53": "^3.529.1",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
