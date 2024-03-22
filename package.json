@@ -38,7 +38,7 @@
     "echarts-for-react": "^3.0.2",
     "falkordb": "^5.0.1",
     "lru-cache": "^10.0.1",
-    "lucide-react": "^0.321.0",
+    "lucide-react": "^0.361.0",
     "next": "^14.0.3",
     "next-auth": "^4.24.4",
     "pg": "^8.11.3",
