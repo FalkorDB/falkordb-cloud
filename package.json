@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth/typeorm-adapter": "^1.1.0",
+    "@auth/typeorm-adapter": "^1.6.1",
     "@aws-sdk/client-cloudwatch": "^3.540.0",
     "@aws-sdk/client-ec2": "^3.485.0",
     "@aws-sdk/client-ecs": "^3.485.0",
