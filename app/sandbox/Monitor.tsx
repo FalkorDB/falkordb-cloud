@@ -1,10 +1,10 @@
 import ReactEcharts, { EChartsOption } from "echarts-for-react";
 import useSWR from "swr";
 import Spinning from "@/app/components/spinning";
-import { Monitor } from "@/app/api/db/monitor/monitor";
+import { Monitor as MonitorData} from "@/app/api/db/monitor/monitor";
 
 
-function getOptions(monitor: Monitor) {
+function getOptions(monitor: MonitorData) {
     const options: EChartsOption = {
         title: {
             text: monitor.name,
@@ -82,7 +82,7 @@ function getOptions(monitor: Monitor) {
     return options
 }
 
-async function getMonitorData(task_arn?: string): Promise<Monitor[]> {
+async function getMonitorData(task_arn?: string): Promise<MonitorData[]> {
 
     let query = task_arn ? `?task_arn=${encodeURIComponent(task_arn)}` : ''
     let response = await fetch(`/api/db/monitor${query}`, {
