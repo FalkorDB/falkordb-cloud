@@ -55,10 +55,10 @@ const PYTHON_EXAMPLE: CodeExample = {
    code: 
 `import redis
 
-r = redis.Redis(host='XYZ.falkordb.io', username='falkorbd', password='*****')
+r = redis.Redis(host='XYZ.falkordb.io', username='falkordb', password='*****')
 
 # uncomment the following lines if you want to use TLS
-# r = redis.Redis(host='XYZ.falkordb.io', username='falkorbd', password='*****', ssl=True, ssl_ca_path='ca.crt')
+# r = redis.Redis(host='XYZ.falkordb.io', username='falkordb', password='*****', ssl=True, ssl_ca_path='ca.crt')
 
 graph = r.graph('movies')
 graph.query("MATCH (n)-[:ACTED_IN]->(m:Movie {title:'Top Gun'}) RETURN n LIMIT 1")`,
